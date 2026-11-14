@@ -36,7 +36,7 @@ local Util <const> = require 'server.util'
 ---@field total integer every minute the character spent on duty for the job
 ---@field days table<string, integer> minutes per UTC day number, for the days the job keeps
 
----@class JobData
+---@class JobRecord
 ---@field requests table<string, StoredRequest>
 ---@field bonuses table[]
 ---@field duty table<string, DutyRecord> by citizenid
@@ -75,7 +75,7 @@ local function jobColumn(jobName, name)
 end
 
 ---@param jobName string
----@return JobData
+---@return JobRecord
 function db.data(jobName)
     local row <const> = MySQL.single.await('SELECT requests, bonuses, duty FROM jobs WHERE name = ?', { jobName })
 

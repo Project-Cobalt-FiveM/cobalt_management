@@ -43,7 +43,7 @@ local Util <const> = require 'server.util'
 
 ---@class RosterOptions
 ---@field summary? boolean skips the duty, leave and bonus totals
----@field data? JobData the job's row when the caller already read it
+---@field data? JobRecord the job's row when the caller already read it
 
 ---@class JobOffer
 ---@field citizenid string

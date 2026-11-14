@@ -84,7 +84,7 @@ local function view(row, applicants, duty)
 end
 
 ---@param jobName string
----@param data? JobData the job's row when the caller already read it
+---@param data? JobRecord the job's row when the caller already read it
 ---@return RequestView[]
 function Requests.list(jobName, data)
     local rows <const>, applicantIds <const> = {}, {}
@@ -108,7 +108,7 @@ end
 
 ---@param citizenid string
 ---@param jobName string
----@param data? JobData the job's row when the caller already read it
+---@param data? JobRecord the job's row when the caller already read it
 ---@return RequestView[]
 function Requests.mine(citizenid, jobName, data)
     local out <const> = {}
