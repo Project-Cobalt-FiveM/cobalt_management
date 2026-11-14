@@ -20,10 +20,6 @@
   const selected = $derived(creating ? null : (gangs.find((gang) => gang.name === selectedName) ?? gangs[0] ?? null));
   const full = $derived(session.gangs.length >= session.maxGangs);
 
-  function colour(id: number): string {
-    return session.colours.find((entry) => entry.id === id)?.hex ?? '#a3a3a3';
-  }
-
   function pick(name: string) {
     creating = false;
     selectedName = name;
@@ -47,7 +43,6 @@
           class="flex h-10 shrink-0 items-center gap-2.5 rounded-md px-2.5 text-left text-sm font-semibold transition-colors {active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}"
           onclick={() => pick(gang.name)}
         >
-          <span class="size-2 shrink-0 rounded-full" style:background-color={colour(gang.blipColor)}></span>
           <span class="flex-1 truncate">{gang.label}</span>
           <span class="text-xs font-normal tabular-nums {active ? 'text-primary-foreground' : 'text-muted-foreground'}">{gang.members}</span>
         </button>

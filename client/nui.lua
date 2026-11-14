@@ -5,19 +5,18 @@ local REQUESTS <const> = {
     'deposit', 'withdraw', 'saveRank', 'buyVehicle', 'postAnnouncement', 'saveLogo', 'setFeature',
     'sendLeave', 'sendReport', 'makeMainJob', 'leaveJob',
     'gang:nearby', 'gang:invite', 'gang:kick', 'gang:passLeadership', 'gang:leave', 'gang:disband',
-    'gang:savePermissions', 'gang:resetPermissions', 'gang:withdraw', 'gang:moveTurf', 'gang:pickHq', 'gang:upgrade',
+    'gang:savePermissions', 'gang:resetPermissions', 'gang:withdraw',
     'admin:members', 'admin:create', 'admin:save', 'admin:delete', 'admin:assign', 'admin:remove',
     'apply:send', 'charter:send',
 }
 
 local CLOSES_ON_SUCCESS <const> = {
-    ['gang:pickHq'] = true,
     ['gang:leave'] = true,
     ['gang:disband'] = true,
     ['charter:send'] = true,
 }
 
----@alias MenuMode 'org' | 'gang' | 'gangAdmin' | 'apply' | 'charter'
+---@alias MenuMode 'job' | 'gang' | 'gangAdmin' | 'apply' | 'charter'
 
 local Nui <const> = {}
 
@@ -133,7 +132,7 @@ end)
 RegisterNetEvent('cobalt_management:open', Nui.open)
 
 RegisterNetEvent('cobalt_management:membershipChanged', function()
-    if pending == 0 and (openMode == 'org' or openMode == 'gang') then Nui.reload() end
+    if pending == 0 and (openMode == 'job' or openMode == 'gang') then Nui.reload() end
 end)
 
 ---@param value any

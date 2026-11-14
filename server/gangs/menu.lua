@@ -1,6 +1,6 @@
 local config <const> = require 'config.server'
 local Util <const> = require 'server.util'
-local Archetypes <const> = require 'server.gangs.archetypes'
+local Ranks <const> = require 'server.gangs.ranks'
 local Gangs <const> = require 'server.gangs.service'
 
 ---@alias GangHandler fun(actor: GangActor, data: table): boolean?, string?
@@ -52,14 +52,6 @@ handlers['gang:withdraw'] = function(actor, data)
     return Gangs.withdraw(actor.source, actor, amount, locale('vault.withdrawal'))
 end
 
-handlers['gang:moveTurf'] = function(actor, data)
-    return Gangs.moveTurf(actor, data.zone)
-end
-
-handlers['gang:upgrade'] = function(actor, data)
-    return Gangs.upgrade(actor, data.archetype)
-end
-
 local GangMenu <const> = {}
 
 ---@param source integer
@@ -82,7 +74,7 @@ function GangMenu.request(source, name, data)
     end
 
     if name == 'gang:nearby' then
-        if not Archetypes.has(actor.gang.archetype, actor.grade, 'gang_invite', actor.gang.permissions) then
+        if not Ranks.has(actor.gang, actor.grade, 'gang_invite') then
             return {}
         end
 
@@ -102,16 +94,6 @@ function GangMenu.request(source, name, data)
 
         Gangs.disband(actor.gang, actor.name)
         Util.log(actor.gang.name, 'Disband', ('%s disbanded the gang'):format(actor.name))
-
-        return { ok = true }
-    end
-
-    if name == 'gang:pickHq' then
-        local ok <const>, err <const> = Gangs.canMoveHq(actor)
-
-        if not ok then return { ok = false, error = err } end
-
-        TriggerClientEvent('cobalt_management:pickHq', source, config.gangs.hq.maxDistance)
 
         return { ok = true }
     end

@@ -2,6 +2,55 @@ local core <const> = exports.cobalt_core
 
 local Util <const> = {}
 
+local NULL <const> = json.null
+
+---@param value unknown
+---@return unknown
+local function scrub(value)
+    if value == NULL or type(value) == 'userdata' then return nil end
+    if type(value) ~= 'table' then return value end
+
+    for key, inner in pairs(value) do value[key] = scrub(inner) end
+
+    return value
+end
+
+---@param value unknown JSON text or an already decoded table
+---@return table?
+function Util.decode(value)
+    if type(value) == 'string' then value = json.decode(value) end
+
+    return type(value) == 'table' and scrub(value) --[[@as table]] or nil
+end
+
+---@param ... string object keys, outermost first
+---@return string path a JSON path such as `$."secondjobs"."police"`
+function Util.jsonPath(...)
+    local keys <const> = { ... }
+
+    for index, name in ipairs(keys) do
+        assert(type(name) == 'string' and name:find('^[%w_%- ]+$'), ('invalid json key %s'):format(tostring(name)))
+        keys[index] = ('"%s"'):format(name)
+    end
+
+    return '$.' .. table.concat(keys, '.')
+end
+
+---@param column 'announcements' | 'bonuses' | 'vault_log'
+---@return string assignment bumps `seq` and appends the JSON entry parameter with `seq` as its id, dropping the oldest past the limit parameter
+function Util.appendCapped(column)
+    return ([[seq = seq + 1, %s = JSON_ARRAY_APPEND(
+        IF(JSON_LENGTH(COALESCE(%s, JSON_ARRAY())) >= ?, JSON_REMOVE(%s, '$[0]'), COALESCE(%s, JSON_ARRAY())),
+        '$', JSON_SET(JSON_EXTRACT(?, '$'), '$.id', seq)
+    )]]):format(column, column, column, column)
+end
+
+---@param value unknown
+---@return integer
+function Util.whole(value)
+    return math.floor(tonumber(value) or 0)
+end
+
 ---@param source integer
 ---@param description string
 ---@param kind? 'success' | 'error' | 'info' | 'warning'
@@ -67,11 +116,11 @@ function Util.distance(source, target)
     return #(GetEntityCoords(GetPlayerPed(source)) - GetEntityCoords(GetPlayerPed(target)))
 end
 
----@param org string
+---@param name string the job or gang
 ---@param action string
 ---@param text string
-function Util.log(org, action, text)
-    core:Log(('management.%s'):format(action), text, { org = org })
+function Util.log(name, action, text)
+    core:Log(('management.%s'):format(action), text, { name = name })
 end
 
 return Util

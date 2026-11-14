@@ -30,12 +30,6 @@ function Membership.onDuty()
     return job?.onduty == true
 end
 
----@param name string
----@return boolean
-function Membership.inGang(name)
-    return Membership.gang()?.name == name
-end
-
 RegisterNetEvent('cobalt_management:membershipChanged', store)
 
 RegisterNetEvent('cobalt_core:Client:OnPlayerUnload', function() store(nil, nil) end)

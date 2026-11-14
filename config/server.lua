@@ -2,7 +2,7 @@ return {
     -- Ranges and periods
     hireRadius = 10.0, -- meters within which a boss can hire a player
     inviteRadius = 8.0, -- meters within which a gang leader can invite a player
-    dutyPeriodDays = 7, -- days of duty time shown on the roster
+    dutyPeriodDays = 7, -- days of duty time shown on the roster; each job keeps daily duty totals for twice this many days
 
     -- Input limits
     limits = {
@@ -73,27 +73,18 @@ return {
                 vec4(-435.75, -2187.33, 10.19, 174.91),
             },
         },
-        -- Upgrading a street gang to an MC, mafia or cartel
-        upgrade = {
-            costs = { mc = 750000, mafia = 1000000, cartel = 1000000 }, -- dollars from the vault
-            minAgeDays = 7, -- days the gang must exist first
-            minMembers = 5, -- members needed
-            minVault = 500000, -- dollars that must be in the vault
-            cooldownDays = 14, -- days between upgrades
+        -- Rank ladder of every gang founded at the charterer, lowest rank first; the last rank is the boss, who holds every permission
+        -- permissions: what the rank can do until the boss changes it in the gang menu
+        -- vault_view: see the vault balance; vault_deposit: put money in; vault_withdraw: take money out
+        -- vault_audit: read the vault history; gang_invite: invite players into the gang
+        ranks = {
+            { name = 'Recruit', permissions = { 'vault_deposit', 'gang_invite' } },
+            { name = 'Soldier', permissions = { 'vault_deposit', 'gang_invite' } },
+            { name = 'Lieutenant', permissions = { 'vault_view', 'vault_deposit', 'gang_invite' } },
+            { name = 'Underboss', permissions = { 'vault_view', 'vault_deposit', 'vault_withdraw', 'vault_audit', 'gang_invite' } },
+            { name = 'Boss' },
         },
-        turf = { cost = 50000, cooldownHours = 24 }, -- claiming turf: dollars and hours between claims
-        hq = { cost = 25000, cooldownHours = 24, maxDistance = 25.0 }, -- moving the HQ: dollars, hours between moves, meters the leader can place it from where they stand
-        colours = { -- gang colours: GTA blip colour id and hex for the menu; each id is named by the gang.colour.<id> locale key
-            { id = 1, hex = '#e03232' },
-            { id = 2, hex = '#72cc72' },
-            { id = 5, hex = '#eec64e' },
-            { id = 7, hex = '#9a6ab6' },
-            { id = 11, hex = '#5fd0c9' },
-            { id = 25, hex = '#f08ec6' },
-            { id = 27, hex = '#8ec1f0' },
-            { id = 38, hex = '#2c57c7' },
-            { id = 47, hex = '#f49b29' },
-            { id = 0, hex = '#fafafa' },
-        },
+        -- Gangs from cobalt_core's data/gangs.lua keep their own rank names
+        builtInPermissions = { 'vault_deposit', 'gang_invite' }, -- what each of their ranks below the boss starts with
     },
 }

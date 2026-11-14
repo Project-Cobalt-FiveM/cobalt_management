@@ -5,7 +5,6 @@
   import { app } from '../../lib/store.svelte';
   import { portal } from '../../lib/portal';
   import Dot from './Dot.svelte';
-  import Swatch from './Swatch.svelte';
 
   import type { Option } from './types';
 
@@ -149,7 +148,6 @@
   >
     {#if Icon}<Icon size="0.875rem" class="shrink-0 text-muted-foreground" />{/if}
     {#if current?.dot}<Dot class={current.dot} />{/if}
-    {#if current?.swatch}<Swatch hex={current.swatch} />{/if}
     {#if prefix}<span class="text-13 text-muted-foreground">{prefix}</span>{/if}
     <span class="min-w-0 flex-1 truncate {current ? 'font-medium' : 'text-muted-foreground'}">{current?.label ?? placeholder}</span>
     <CaretDown size="0.75rem" class="text-muted-foreground" />
@@ -186,7 +184,6 @@
             onclick={() => choose(option)}
           >
             {#if option.dot}<Dot class={selected ? 'bg-white' : option.dot} />{/if}
-            {#if option.swatch}<Swatch hex={option.swatch} />{/if}
             <span class="flex-1 truncate">{option.label}</span>
           </button>
         </li>

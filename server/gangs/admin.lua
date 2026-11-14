@@ -1,10 +1,8 @@
 local config <const> = require 'config.server'
-local db <const> = require 'server.db'
 local Members <const> = require 'server.members'
 local Util <const> = require 'server.util'
-local Archetypes <const> = require 'server.gangs.archetypes'
+local Ranks <const> = require 'server.gangs.ranks'
 local GangStore <const> = require 'server.gangs.store'
-local Vault <const> = require 'server.gangs.vault'
 local Gangs <const> = require 'server.gangs.service'
 
 local core <const> = exports.cobalt_core
@@ -20,16 +18,23 @@ end
 ---@param source integer
 ---@return table
 function Admin.session(source)
-    local gangs <const>, archetypes <const>, online <const> = {}, {}, {}
-    local counts <const> = db.memberCounts('gang')
+    local gangs <const>, online <const>, names <const> = {}, {}, {}
+
+    for name in pairs(GangStore.all()) do names[#names + 1] = name end
+
+    local counts <const> = Members.gangCounts(names)
 
     for name, gang in pairs(GangStore.all()) do
+        local ranks <const> = {}
+
+        for _, rank in ipairs(Ranks.ladder(name).ranks) do
+            ranks[#ranks + 1] = { grade = rank.grade, name = rank.name, isBoss = rank.isBoss }
+        end
+
         gangs[#gangs + 1] = {
             name = name,
             label = gang.label,
-            archetype = gang.archetype,
-            homeTurf = gang.homeTurf,
-            blipColor = gang.blipColor,
+            ranks = ranks,
             members = counts[name] or 0,
             founderName = gang.founderCid and Members.nameOf(gang.founderCid) or nil,
             foundedAt = Util.iso(gang.foundedAt),
@@ -37,19 +42,6 @@ function Admin.session(source)
     end
 
     table.sort(gangs, function(a, b) return a.label < b.label end)
-
-    for _, id in ipairs(Archetypes.order) do
-        local archetype <const> = Archetypes.get(id)
-        local ranks <const> = {}
-
-        for grade = 0, archetype.bossGrade do
-            local rank <const> = archetype.ranks[grade]
-
-            ranks[#ranks + 1] = { grade = grade, name = rank.name, isBoss = rank.isBoss == true }
-        end
-
-        archetypes[#archetypes + 1] = { id = id, label = archetype.label, ranks = ranks }
-    end
 
     for other, entry in pairs(Members.online()) do
         local gang <const> = entry.gang.name ~= Members.NO_GANG and GangStore.get(entry.gang.name)
@@ -74,36 +66,14 @@ function Admin.session(source)
         gangs = gangs,
         maxGangs = config.gangs.maxActive,
         nameLength = config.gangs.nameLength,
-        archetypes = archetypes,
-        zones = Vault.zones(),
-        colours = Gangs.colours(),
         onlinePlayers = online,
     }
 end
 
----@param name string
----@return table[]
-function Admin.members(name)
-    local out <const> = {}
-
-    for _, row in ipairs(db.members('gang', name)) do
-        out[#out + 1] = {
-            citizenid = row.citizenid,
-            name = row.name or locale('member.unknown'),
-            grade = row.gang.grade.level,
-            online = Members.sourceOf(row.citizenid) ~= nil,
-        }
-    end
-
-    table.sort(out, function(a, b) return a.grade > b.grade end)
-
-    return out
-end
-
 ---@param data table
----@return { label: string, archetype: string, homeTurf?: string, blipColor: integer }? spec
+---@return string? label
 ---@return string? error
-local function details(data)
+local function validLabel(data)
     local length <const> = config.gangs.nameLength
     local label <const> = Util.text(data.label, length.max)
 
@@ -111,33 +81,21 @@ local function details(data)
         return nil, locale('gang.name_length', length.min, length.max)
     end
 
-    if not Archetypes.exists(data.archetype) then
-        return nil, locale('gang.pick_archetype')
-    end
-
-    local colour <const> = Util.integer(data.blipColor, 0, 85)
-
-    if not colour then
-        return nil, locale('admin.pick_colour')
-    end
-
-    local turf <const> = type(data.homeTurf) == 'string' and Vault.zoneExists(data.homeTurf) and data.homeTurf or nil
-
-    return { label = label, archetype = data.archetype, homeTurf = turf, blipColor = colour }
+    return label
 end
 
 ---@type table<string, fun(source: integer, data: table): boolean?, string?>
 local handlers <const> = {}
 
 handlers['admin:create'] = function(source, data)
-    local spec <const>, err <const> = details(data)
+    local label <const>, err <const> = validLabel(data)
 
-    if not spec then return false, err end
-    if GangStore.labelTaken(spec.label) then
+    if not label then return false, err end
+    if GangStore.labelTaken(label) then
         return false, locale('gang.name_taken')
     end
 
-    local gang <const> = GangStore.create(spec)
+    local gang <const> = GangStore.create({ label = label })
 
     if not gang then
         return false, locale('admin.create_failed')
@@ -150,26 +108,20 @@ end
 
 handlers['admin:save'] = function(source, data)
     local gang <const> = GangStore.get(data.name)
-    local spec <const>, err <const> = details(data)
+    local label <const>, err <const> = validLabel(data)
 
     if not gang then
         return false, locale('admin.gang_gone')
     end
 
-    if not spec then return false, err end
+    if not label then return false, err end
 
-    gang.label = spec.label
-    gang.blipColor = spec.blipColor
-
-    if spec.homeTurf or data.homeTurf ~= gang.homeTurf then gang.homeTurf = spec.homeTurf end
-
-    if spec.archetype ~= gang.archetype then
-        if not Gangs.switchArchetype(gang, spec.archetype) then
-            return false, locale('admin.archetype_failed')
-        end
-    else
-        GangStore.save(gang, nil, nil, { definition = true, map = true })
+    if label:lower() ~= gang.label:lower() and GangStore.labelTaken(label) then
+        return false, locale('gang.name_taken')
     end
+
+    gang.label = label
+    GangStore.save(gang, true)
 
     Members.refreshGang(gang.name)
     Util.log(gang.name, 'Admin', ('%s edited the gang'):format(Members.name(source)))
@@ -201,7 +153,7 @@ handlers['admin:assign'] = function(source, data)
         return false, locale('admin.pick_player')
     end
 
-    local grade <const> = Util.integer(data.grade, 0, Archetypes.get(gang.archetype).bossGrade)
+    local grade <const> = Util.integer(data.grade, 0, Ranks.ladder(gang.name).bossGrade)
 
     if not grade then
         return false, locale('common.pick_rank')
@@ -227,7 +179,7 @@ handlers['admin:remove'] = function(source, data)
         return false, locale('common.pick_member')
     end
 
-    if db.member(data.citizenid)?.gang?.name ~= gang.name then
+    if Members.stored(data.citizenid, 'gang')?.name ~= gang.name then
         return false, locale('admin.not_in_gang')
     end
 
@@ -252,7 +204,7 @@ function Admin.request(source, name, data)
     end
 
     if name == 'admin:members' then
-        return type(data.name) == 'string' and Admin.members(data.name) or {}
+        return type(data.name) == 'string' and Gangs.roster(data.name) or {}
     end
 
     local run <const> = handlers[name]

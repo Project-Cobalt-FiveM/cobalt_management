@@ -1,18 +1,18 @@
 import { fetchNui } from './nui';
 import { firstPage, canOpen } from './access';
 import { setLocales, t } from './locale.svelte';
-import type { Messages, OrgPage, Result, Session } from './types';
+import type { Messages, JobPage, Result, Session } from './types';
 
 export type FundsMode = 'deposit' | 'withdraw';
 
-export type GangPage = 'roster' | 'permissions' | 'vault' | 'archetype';
+export type GangPage = 'roster' | 'permissions' | 'vault';
 
 type Outcome = Result<Session> | { ok: boolean; error?: string };
 
 class App {
   visible = $state(false);
   session = $state<Session | null>(null);
-  orgPage = $state<OrgPage>('overview');
+  jobPage = $state<JobPage>('overview');
   gangPage = $state<GangPage>('roster');
   fundsMode = $state<FundsMode>('deposit');
   now = $state(Date.now());
@@ -36,11 +36,11 @@ class App {
     this.now = Date.now() + this.#offset;
     this.session = session;
 
-    if (session.mode === 'org' && !canOpen(session, this.orgPage)) this.orgPage = firstPage(session);
+    if (session.mode === 'job' && !canOpen(session, this.jobPage)) this.jobPage = firstPage(session);
   }
 
-  goOrg(page: OrgPage): void {
-    if (this.session?.mode === 'org' && canOpen(this.session, page)) this.orgPage = page;
+  goJob(page: JobPage): void {
+    if (this.session?.mode === 'job' && canOpen(this.session, page)) this.jobPage = page;
   }
 
   goGang(page: GangPage): void {
@@ -76,7 +76,7 @@ class App {
       case 'open':
         setLocales(message.locales);
         this.replace(message.data);
-        if (message.data.mode === 'org') this.orgPage = firstPage(message.data);
+        if (message.data.mode === 'job') this.jobPage = firstPage(message.data);
         this.gangPage = 'roster';
         this.visible = true;
         break;

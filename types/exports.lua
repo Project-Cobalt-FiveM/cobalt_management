@@ -2,7 +2,9 @@
 
 ---@alias ManagementPermission 'open_menu' | 'view_dashboard' | 'give_bonus' | 'society'
 
----@alias ManagementMenu 'org' | 'gang' | 'gangAdmin' | 'apply' | 'charter'
+---@alias GangPermission 'vault_view' | 'vault_deposit' | 'vault_withdraw' | 'vault_audit' | 'gang_invite'
+
+---@alias ManagementMenu 'job' | 'gang' | 'gangAdmin' | 'apply' | 'charter'
 
 ---@class ManagementJob
 ---@field name string
@@ -11,15 +13,15 @@
 ---@field onduty boolean
 ---@field isboss boolean
 ---@field grade { name: string, level: integer, payment: integer, isboss: boolean }
+---@field since? integer unix seconds when the character joined the job
 
 ---@class ManagementGang
 ---@field name string
 ---@field label string
 ---@field isboss boolean
 ---@field grade { name: string, level: integer, isboss: boolean }
----@field archetype? string server only: `street`, `mc`, `mafia` or `cartel`
----@field permissions? string[] server only: what the member's rank can do in the street economy
----@field homeTurf? string server only
+---@field since? integer unix seconds when the character joined the gang; nil outside a gang
+---@field permissions? GangPermission[] server only: what the member's rank can do
 ---@field founderCid? string server only
 
 ---@class ManagementEmployee
@@ -45,6 +47,10 @@
 ---@field label string
 ---@field minGrade integer lowest grade that may drive it
 
+---@class ManagementJobStatus
+---@field open boolean false while staff keep the job closed
+---@field paidToday integer dollars paid out for the job since midnight, server time
+
 ---@class CobaltManagementExports
 local CobaltManagementExports = {}
 
@@ -57,7 +63,7 @@ function CobaltManagementExports:GetJob(source) end
 ---@return ManagementJob?
 function CobaltManagementExports:GetJob() end
 
----**Server.** The player's gang with its archetype and the rank's permissions, or nil outside a gang.
+---**Server.** The player's gang with its rank's permissions, or nil outside a gang.
 ---@param source integer
 ---@return ManagementGang?
 function CobaltManagementExports:GetGang(source) end
@@ -76,7 +82,7 @@ function CobaltManagementExports:SetJob(source, name, grade) end
 ---@return boolean
 function CobaltManagementExports:SetGang(source, name, grade) end
 
----**Server.** Job and gang per character, online or not, for character lists. Characters with no row are left out.
+---**Server.** Job and gang per character, online or not, read from `metadata.job` and `metadata.gang`, for character lists. Characters with neither are left out.
 ---@param citizenids string[]
 ---@return table<string, { job?: ManagementJob, gang?: ManagementGang }>
 function CobaltManagementExports:GetAffiliations(citizenids) end
@@ -96,42 +102,43 @@ function CobaltManagementExports:GetDutyCount(job) end
 ---@return boolean
 function CobaltManagementExports:GetDuty() end
 
----**Server.** Sets duty and logs the shift.
+---**Server.** Puts the player on or off duty and starts or ends their shift. The change stays in memory; characters log in on their job's default duty while cobalt_core's `forceDefaultDutyAtLogin` is on.
 ---@param source integer
 ---@param onDuty boolean
 ---@return boolean
 function CobaltManagementExports:SetDuty(source, onDuty) end
 
----**Server.** Whether the player's rank in the job or gang holds a menu permission. Boss ranks hold all of them.
+---**Server.** Whether the player's rank in the job holds a menu permission. Boss ranks hold all of them; in a gang only the boss holds them.
 ---@param source integer
----@param org string
+---@param name string job or gang
 ---@param permission ManagementPermission
 ---@return boolean
-function CobaltManagementExports:HasPermission(source, org, permission) end
+function CobaltManagementExports:HasPermission(source, name, permission) end
 
 ---**Server.** Everyone in a job or gang, online or not, highest grade first. It lists main jobs only, not second jobs.
----`summary` skips the duty, leave and bonus queries, so `weekMinutes`, `lastWeekMinutes` and `monthBonuses` are 0,
----`onLeave` is false and `shiftStartedAt` is nil.
----@param org string
+---`summary` skips the duty, leave and bonus totals, so `weekMinutes`, `lastWeekMinutes` and `monthBonuses` are 0,
+---`onLeave` is false and `shiftStartedAt` is nil. Gangs always get those defaults.
+---@param name string job or gang
 ---@param options? { summary?: boolean }
 ---@return ManagementEmployee[]
-function CobaltManagementExports:GetEmployees(org, options) end
+function CobaltManagementExports:GetEmployees(name, options) end
 
 ---**Server.** Server ids of online players in the job or gang.
----@param org string
+---@param name string job or gang
 ---@return integer[]
-function CobaltManagementExports:GetOnlineMembers(org) end
+function CobaltManagementExports:GetOnlineMembers(name) end
 
 ---**Server.** Moves an employee to another grade, online or not. Someone holding the job as a second job keeps it as one.
 ---@param citizenid string
----@param org string
+---@param job string
 ---@param grade integer
 ---@return boolean ok
 ---@return string? error
-function CobaltManagementExports:SetGrade(citizenid, org, grade) end
+function CobaltManagementExports:SetGrade(citizenid, job, grade) end
 
----**Server.** Minutes a character spent on duty for a job in the last `days` (7 when left out). Pass a list of citizenids
----to get them all from one query, as a table keyed by citizenid with 0 for each one without shifts.
+---**Server.** Minutes a character spent on duty for a job in the last `days` (7 when left out), the shift in progress included.
+---Jobs keep daily totals for twice `dutyPeriodDays` (14 days by default); a longer `days` returns every minute on record.
+---Pass a list of citizenids to get them all at once, as a table keyed by citizenid with 0 for each one without duty time.
 ---@param citizenid string
 ---@param job string
 ---@param days? integer
@@ -139,27 +146,44 @@ function CobaltManagementExports:SetGrade(citizenid, org, grade) end
 ---@overload fun(self: CobaltManagementExports, citizenids: string[], job: string, days?: integer): table<string, integer>
 function CobaltManagementExports:GetDutyMinutes(citizenid, job, days) end
 
----**Server.** Whether the player's gang rank holds a street permission such as `vault_withdraw` or `racket_claim`.
+---**Server.** Whether the player's gang rank holds a permission. The boss holds all of them.
 ---@param source integer
----@param permission string
+---@param permission GangPermission
 ---@return boolean
 function CobaltManagementExports:HasGangPermission(source, permission) end
 
----**Server.** Vehicles the org bought from its menu. cobalt_garages lists them in the org's garage.
----@param org string
+---**Server.** Vehicles the job bought from its menu. cobalt_garages lists them in the job's garage.
+---@param job string
 ---@return ManagementFleetVehicle[]
-function CobaltManagementExports:GetFleet(org) end
+function CobaltManagementExports:GetFleet(job) end
 
----**Server.** Opens a menu for a player. `apply` takes `{ org = name }`.
+---**Server.** Opens a menu for a player. `apply` takes `{ job = name }`.
 ---@param source integer
----@param menu? ManagementMenu
+---@param menu? ManagementMenu `job` when left out
 ---@param data? table
 function CobaltManagementExports:OpenMenu(source, menu, data) end
 
 ---**Client.** Opens a menu for the local player; false when it isn't available to them.
----@param menu? ManagementMenu
+---@param menu? ManagementMenu `job` when left out
 ---@param data? table
 ---@return boolean
 function CobaltManagementExports:OpenMenu(menu, data) end
+
+---**Server.** Whether each job is open and what it paid out today, from the `jobs` table. A job with no row is open with nothing paid.
+---@param names string[]
+---@return table<string, ManagementJobStatus> statuses by job name
+function CobaltManagementExports:GetJobStatus(names) end
+
+---**Server.** Opens or closes a job; city hall stops starting shifts for a closed one. False when the name or flag is invalid.
+---@param name string
+---@param open boolean
+---@return boolean
+function CobaltManagementExports:SetJobOpen(name, open) end
+
+---**Server.** Adds a payout to the job's total for today, which starts over at midnight, server time. False when the name or amount is invalid.
+---@param name string
+---@param amount integer whole dollars above 0
+---@return boolean
+function CobaltManagementExports:AddJobPayout(name, amount) end
 
 exports.cobalt_management = CobaltManagementExports

@@ -1,6 +1,5 @@
 <script lang="ts">
   import Button from '../components/ui/Button.svelte';
-  import Select from '../components/ui/Select.svelte';
   import Row from '../components/ui/Row.svelte';
   import ErrorText from '../components/ui/ErrorText.svelte';
   import { Action, app } from '../lib/store.svelte';
@@ -15,21 +14,12 @@
   const charter = new Action();
 
   let label = $state('');
-  let homeTurf = $state<string | null>(null);
-  let blipColor = $state<number | null>(null);
 
-  $effect.pre(() => {
-    homeTurf ??= session.zones[0]?.id ?? null;
-    blipColor ??= session.colours[0]?.id ?? null;
-  });
-
-  const zones = $derived(session.zones.map((zone) => ({ value: zone.id, label: zone.label })));
-  const colours = $derived(session.colours.map((entry) => ({ value: entry.id, label: entry.label, swatch: entry.hex })));
   const name = $derived(label.trim());
   const nameValid = $derived(name.length >= session.nameLength.min && name.length <= session.nameLength.max);
   const short = $derived(Math.max(0, session.price - session.carried));
   const full = $derived(session.slotsUsed >= session.maxSlots);
-  const ready = $derived(nameValid && homeTurf !== null && blipColor !== null && short === 0 && !full);
+  const ready = $derived(nameValid && short === 0 && !full);
 
   const blocker = $derived.by(() => {
     if (full) return t('ui.charter.full');
@@ -42,9 +32,9 @@
   }
 
   async function submit() {
-    if (!ready || homeTurf === null || blipColor === null) return;
+    if (!ready) return;
 
-    const payload = { label: name, homeTurf, blipColor };
+    const payload = { label: name };
     if (await charter.run(() => fetchNui('charter:send', payload))) app.close();
   }
 </script>
@@ -61,17 +51,6 @@
       <input use:focus class="field" placeholder={t('ui.charter.name')} maxlength={session.nameLength.max} bind:value={label} oninput={() => charter.clear()} />
       <span class="text-xs text-muted-foreground">{t('ui.charter.name_hint', session.nameLength.min, session.nameLength.max)}</span>
     </label>
-
-    <div class="grid grid-cols-2 gap-3">
-      <div class="flex flex-col gap-2">
-        <span class="text-sm font-semibold">{t('ui.common.home_turf')}</span>
-        <Select label={t('ui.common.home_turf')} placeholder={t('ui.common.pick_turf')} options={zones} bind:value={homeTurf} />
-      </div>
-      <div class="flex flex-col gap-2">
-        <span class="text-sm font-semibold">{t('ui.common.map_colour')}</span>
-        <Select label={t('ui.common.map_colour')} options={colours} bind:value={blipColor} />
-      </div>
-    </div>
 
     <div class="flex flex-col border-t border-border">
       <Row label={t('ui.charter.price')}>{t('ui.charter.bills', money(session.price))}</Row>

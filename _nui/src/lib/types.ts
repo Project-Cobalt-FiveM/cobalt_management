@@ -1,6 +1,6 @@
 export type Iso = string;
 
-export type OrgFeature =
+export type JobFeature =
   | 'society'
   | 'applications'
   | 'leaves'
@@ -12,7 +12,7 @@ export type OrgFeature =
 
 export type RankPermission = 'open_menu' | 'view_dashboard' | 'give_bonus' | 'society';
 
-export type OrgPage =
+export type JobPage =
   | 'overview'
   | 'employees'
   | 'requests'
@@ -24,7 +24,7 @@ export type OrgPage =
   | 'myJob'
   | 'myJobs';
 
-export interface Org {
+export interface JobInfo {
   name: string;
   label: string;
   type: string;
@@ -177,13 +177,13 @@ export interface JobEntry {
   onDuty: boolean;
 }
 
-export interface OrgSession {
-  mode: 'org';
+export interface JobSession {
+  mode: 'job';
   now: Iso;
-  org: Org;
+  job: JobInfo;
   me: Me;
   access: Access;
-  features: Record<OrgFeature, boolean>;
+  features: Record<JobFeature, boolean>;
   bosses: string[];
   ranks: Rank[];
   stats: Stats | null;
@@ -208,21 +208,11 @@ export interface NearbyPlayer {
   appliedAt: Iso | null;
 }
 
-export interface Zone {
-  id: string;
-  label: string;
-}
-
-export interface MapColour {
-  id: number;
-  label: string;
-  hex: string;
-}
+export type GangPermission = 'vault_view' | 'vault_deposit' | 'vault_withdraw' | 'vault_audit' | 'gang_invite';
 
 export interface GangPermissionDef {
-  id: string;
+  id: GangPermission;
   label: string;
-  group: string;
 }
 
 export interface GangRank {
@@ -249,35 +239,12 @@ export interface VaultEntry {
   amount: number;
 }
 
-export interface ArchetypeOption {
-  id: string;
-  label: string;
-  summary: string;
-  ranks: number;
-  price: number;
-  current: boolean;
-}
-
-export interface UpgradeChecks {
-  ageDays: number;
-  minAgeDays: number;
-  members: number;
-  minMembers: number;
-  vault: number;
-  minVault: number;
-  lastChangeAt: Iso | null;
-  cooldownDays: number;
-  cooldownEndsAt: Iso | null;
-}
-
 export interface GangSession {
   mode: 'gang';
   now: Iso;
   gang: {
     name: string;
     label: string;
-    archetype: string;
-    archetypeLabel: string;
     foundedAt: Iso;
   };
   me: {
@@ -287,37 +254,21 @@ export interface GangSession {
     rank: string;
     isBoss: boolean;
     isFounder: boolean;
-    permissions: string[];
+    permissions: GangPermission[];
   };
   ranks: GangRank[];
   members: GangMember[];
   inviteRadius: number;
   permissionCatalog: GangPermissionDef[];
-  permissions: Record<string, string[]>;
+  permissions: Record<string, GangPermission[]>;
   vault: {
     balance: number;
     canSee: boolean;
+    canDeposit: boolean;
     canWithdraw: boolean;
     canSeeHistory: boolean;
     history: VaultEntry[];
   };
-  turf: {
-    zone: string | null;
-    zones: Zone[];
-    cost: number;
-    cooldownHours: number;
-    cooldownEndsAt: Iso | null;
-    canMove: boolean;
-  };
-  hq: {
-    label: string | null;
-    movedAt: Iso | null;
-    cost: number;
-    cooldownEndsAt: Iso | null;
-    canMove: boolean;
-  };
-  archetypes: ArchetypeOption[];
-  upgrade: UpgradeChecks;
 }
 
 export interface GangNearby {
@@ -330,19 +281,10 @@ export interface GangNearby {
 export interface AdminGang {
   name: string;
   label: string;
-  archetype: string;
-  homeTurf: string | null;
-  blipColor: number;
+  ranks: GangRank[];
   members: number;
   founderName: string | null;
   foundedAt: Iso;
-}
-
-export interface AdminMember {
-  citizenid: string;
-  name: string;
-  grade: number;
-  online: boolean;
 }
 
 export interface OnlinePlayer {
@@ -359,16 +301,13 @@ export interface AdminSession {
   gangs: AdminGang[];
   maxGangs: number;
   nameLength: { min: number; max: number };
-  archetypes: { id: string; label: string; ranks: GangRank[] }[];
-  zones: Zone[];
-  colours: MapColour[];
   onlinePlayers: OnlinePlayer[];
 }
 
 export interface ApplySession {
   mode: 'apply';
   now: Iso;
-  org: Org;
+  job: JobInfo;
   reviewers: string[];
   startingRank: string;
   startingPay: number;
@@ -385,39 +324,37 @@ export interface CharterSession {
   slotsUsed: number;
   maxSlots: number;
   bossRank: string;
-  zones: Zone[];
-  colours: MapColour[];
   nameLength: { min: number; max: number };
 }
 
-export type Session = OrgSession | GangSession | AdminSession | ApplySession | CharterSession;
+export type Session = JobSession | GangSession | AdminSession | ApplySession | CharterSession;
 
 export type Result<S> = { ok: true; session: S } | { ok: false; error: string };
 
-type OrgResult = Result<OrgSession>;
+type JobResult = Result<JobSession>;
 type GangResult = Result<GangSession>;
 type AdminResult = Result<AdminSession>;
 
 export interface Requests {
   close: [void, { ok: true }];
-  setDuty: [{ onDuty: boolean }, OrgResult];
+  setDuty: [{ onDuty: boolean }, JobResult];
   nearbyPlayers: [void, NearbyPlayer[]];
-  hire: [{ citizenid: string; grade: number; asSecondJob: boolean }, OrgResult];
-  fire: [{ citizenid: string; reason: string }, OrgResult];
-  setGrade: [{ citizenid: string; grade: number }, OrgResult];
-  giveBonus: [{ citizenid: string; amount: number; reason: string }, OrgResult];
-  answerRequest: [{ id: number; approve: boolean; grade?: number }, OrgResult];
-  deposit: [{ amount: number; note: string }, OrgResult];
-  withdraw: [{ amount: number; note: string }, OrgResult];
-  saveRank: [{ grade: number; pay: number; permissions: RankPermission[] }, OrgResult];
-  buyVehicle: [{ model: string }, OrgResult];
-  postAnnouncement: [{ title: string; message: string }, OrgResult];
-  saveLogo: [{ url: string }, OrgResult];
-  setFeature: [{ feature: OrgFeature; enabled: boolean }, OrgResult];
-  sendLeave: [{ from: string; until: string; reason: string }, OrgResult];
-  sendReport: [{ title: string; message: string }, OrgResult];
-  makeMainJob: [{ name: string }, OrgResult];
-  leaveJob: [{ name: string }, OrgResult];
+  hire: [{ citizenid: string; grade: number; asSecondJob: boolean }, JobResult];
+  fire: [{ citizenid: string; reason: string }, JobResult];
+  setGrade: [{ citizenid: string; grade: number }, JobResult];
+  giveBonus: [{ citizenid: string; amount: number; reason: string }, JobResult];
+  answerRequest: [{ id: number; approve: boolean; grade?: number }, JobResult];
+  deposit: [{ amount: number; note: string }, JobResult];
+  withdraw: [{ amount: number; note: string }, JobResult];
+  saveRank: [{ grade: number; pay: number; permissions: RankPermission[] }, JobResult];
+  buyVehicle: [{ model: string }, JobResult];
+  postAnnouncement: [{ title: string; message: string }, JobResult];
+  saveLogo: [{ url: string }, JobResult];
+  setFeature: [{ feature: JobFeature; enabled: boolean }, JobResult];
+  sendLeave: [{ from: string; until: string; reason: string }, JobResult];
+  sendReport: [{ title: string; message: string }, JobResult];
+  makeMainJob: [{ name: string }, JobResult];
+  leaveJob: [{ name: string }, JobResult];
 
   'gang:nearby': [void, GangNearby[]];
   'gang:invite': [{ serverId: number }, GangResult];
@@ -425,22 +362,19 @@ export interface Requests {
   'gang:passLeadership': [{ citizenid: string }, GangResult];
   'gang:leave': [void, { ok: boolean; error?: string }];
   'gang:disband': [void, { ok: boolean; error?: string }];
-  'gang:savePermissions': [{ permissions: Record<string, string[]> }, GangResult];
+  'gang:savePermissions': [{ permissions: Record<string, GangPermission[]> }, GangResult];
   'gang:resetPermissions': [void, GangResult];
   'gang:withdraw': [{ amount: number }, GangResult];
-  'gang:moveTurf': [{ zone: string }, GangResult];
-  'gang:pickHq': [void, { ok: boolean; error?: string }];
-  'gang:upgrade': [{ archetype: string }, GangResult];
 
-  'admin:members': [{ name: string }, AdminMember[]];
-  'admin:create': [{ label: string; archetype: string; homeTurf?: string; blipColor: number }, AdminResult];
-  'admin:save': [{ name: string; label: string; archetype: string; homeTurf?: string; blipColor: number }, AdminResult];
+  'admin:members': [{ name: string }, GangMember[]];
+  'admin:create': [{ label: string }, AdminResult];
+  'admin:save': [{ name: string; label: string }, AdminResult];
   'admin:delete': [{ name: string }, AdminResult];
   'admin:assign': [{ name: string; citizenid: string; grade: number }, AdminResult];
   'admin:remove': [{ name: string; citizenid: string }, AdminResult];
 
-  'apply:send': [{ org: string; message: string }, Result<ApplySession>];
-  'charter:send': [{ label: string; homeTurf: string; blipColor: number }, { ok: boolean; error?: string }];
+  'apply:send': [{ job: string; message: string }, Result<ApplySession>];
+  'charter:send': [{ label: string }, { ok: boolean; error?: string }];
 }
 
 export type Messages =

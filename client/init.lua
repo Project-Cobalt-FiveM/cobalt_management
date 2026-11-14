@@ -18,12 +18,12 @@ local function openMain()
 
     if Membership.gang() and not employed() then return Nui.open('gang') end
 
-    Nui.open('org')
+    Nui.open('job')
 end
 
----@param org? string
-local function openApplication(org)
-    if org then return Nui.open('apply', { org = org }) end
+---@param jobName? string
+local function openApplication(jobName)
+    if jobName then return Nui.open('apply', { job = jobName }) end
 
     local jobs <const> = lib.callback.await('cobalt_management:applicable', false) or {}
 
@@ -34,28 +34,28 @@ local function openApplication(org)
     local options <const> = {}
 
     for _, job in ipairs(jobs) do
-        options[#options + 1] = { title = job.label, onSelect = function() Nui.open('apply', { org = job.name }) end }
+        options[#options + 1] = { title = job.label, onSelect = function() Nui.open('apply', { job = job.name }) end }
     end
 
     core:RegisterContext({ id = 'cobalt_management:apply', title = locale('apply.menu_title'), options = options })
     core:ShowContext('cobalt_management:apply')
 end
 
----@param orgLabel string
+---@param jobLabel string
 ---@param rank string
 ---@param boss string
 ---@param asSecondJob boolean
 ---@return string
-local function offerText(orgLabel, rank, boss, asSecondJob)
+local function offerText(jobLabel, rank, boss, asSecondJob)
     if asSecondJob then
-        return locale('offer.body_second', boss, orgLabel, rank)
+        return locale('offer.body_second', boss, jobLabel, rank)
     end
 
     if employed() then
-        return locale('offer.body_replace', boss, orgLabel, rank, Membership.job()?.label)
+        return locale('offer.body_replace', boss, jobLabel, rank, Membership.job()?.label)
     end
 
-    return locale('offer.body', boss, orgLabel, rank)
+    return locale('offer.body', boss, jobLabel, rank)
 end
 
 RegisterCommand(config.openCommand, openMain, false)
@@ -63,21 +63,21 @@ RegisterKeyMapping(config.openCommand, locale('menu.keybind'), 'keyboard', confi
 
 RegisterNetEvent('cobalt_management:apply', openApplication)
 
-RegisterNetEvent('cobalt_management:jobOffer', function(orgName, orgLabel, rank, boss, asSecondJob)
+RegisterNetEvent('cobalt_management:jobOffer', function(jobName, jobLabel, rank, boss, asSecondJob)
     local answer <const> = core:AlertDialog({
         header = locale('offer.title'),
-        content = offerText(orgLabel, rank, boss, asSecondJob == true),
+        content = offerText(jobLabel, rank, boss, asSecondJob == true),
         centered = true,
         cancel = true,
         labels = { confirm = locale('offer.accept'), cancel = locale('offer.decline') },
     }, 60000)
 
-    TriggerServerEvent('cobalt_management:answerOffer', orgName, answer == 'confirm')
+    TriggerServerEvent('cobalt_management:answerOffer', jobName, answer == 'confirm')
 end)
 
 exports('GetJob', Membership.job)
 exports('GetDuty', Membership.onDuty)
 
 exports('OpenMenu', function(mode, data)
-    return Nui.open(mode or 'org', data)
+    return Nui.open(mode or 'job', data)
 end)

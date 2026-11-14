@@ -25,7 +25,7 @@
     "pick_rank": "Pick a rank",
     "title_and_message": "Add a title and a message"
   },
-  "org": {
+  "job": {
     "rank_cannot": "Your rank can't do that",
     "duty_off": "Duty tracking is off for this job",
     "pick_person_rank": "Pick a person and a rank",
@@ -43,11 +43,10 @@
     "no_longer_staff": "You no longer work here",
     "grade_fallback": "Grade %d"
   },
-  "org_type": {
+  "job_type": {
     "leo": "Law enforcement",
     "ems": "Emergency medical",
     "mechanic": "Mechanic shop",
-    "gang": "Gang",
     "business": "Business"
   },
   "member": {
@@ -155,10 +154,6 @@
   "gang": {
     "not_member": "You're not in a gang",
     "no_longer_member": "You're not in a gang anymore",
-    "unknown_spot": "Unknown spot",
-    "hq_moved": "HQ moved",
-    "hq_target": "Open the gang menu",
-    "hq_prompt": "[LMB] Set the HQ here  [X] Cancel",
     "invite_target": "Invite into your gang",
     "invite_sent": "Invite sent",
     "invite_failed": "The invite didn't go through",
@@ -179,7 +174,6 @@
     "pass_first": "Pass leadership before you leave",
     "boss_cant_leave": "Pass leadership or disband the gang first",
     "left": "You left %s",
-    "change_pending": "Another change is going through. Try again in a moment.",
     "not_in_your_gang": "They aren't in your gang",
     "kicked": "You were kicked from %s",
     "boss_pass": "Only the boss can pass leadership",
@@ -192,80 +186,18 @@
     "cannot_withdraw": "Your rank can't withdraw",
     "no_room": "Not enough room in your bag",
     "vault_short_amount": "The vault doesn't hold that much",
-    "cannot_move_turf": "Your rank can't move the turf",
-    "pick_zone": "Pick a zone",
-    "same_turf": "That's already your turf",
-    "turf_cooldown": "You moved turf recently",
-    "vault_needs": "The vault needs %s",
-    "cannot_move_hq": "Your rank can't move the HQ",
-    "hq_cooldown": "You moved the HQ recently",
-    "pick_spot": "Pick a spot",
-    "spot_too_far": "That spot is too far away",
-    "boss_archetype": "Only the boss can change the archetype",
-    "pick_archetype": "Pick an archetype",
-    "already_archetype": "The gang already is one",
-    "too_young": "The gang needs to be %d days old",
-    "archetype_cooldown": "The archetype changed too recently",
-    "need_members": "You need %d members",
-    "vault_min": "The vault needs %s in it",
-    "vault_short": "The vault is %s short",
-    "debit_failed": "The vault debit failed",
     "name_length": "Names are %d to %d letters",
     "name_taken": "Another gang already uses that name",
     "pick_nearby": "Pick someone nearby",
     "boss_disband": "Only the boss can disband",
     "permission": {
-      "tag_wall": "Tag walls",
-      "homeland_bonus": "Home turf payout bonus",
-      "formation_lead": "Lead bike formations",
-      "racket_claim": "Claim businesses",
-      "racket_launder": "Run laundering",
-      "racket_raid": "Lead raids on rivals",
-      "front_purchase": "Buy business fronts",
-      "lab_operate": "Operate the lab",
-      "tools_craft": "Craft criminal tools",
       "vault_view": "See the vault",
+      "vault_deposit": "Deposit into the vault",
       "vault_withdraw": "Withdraw from the vault",
       "vault_audit": "See vault history",
-      "turf_set": "Move home turf and HQ",
       "gang_invite": "Invite players"
     },
-    "permission_group": {
-      "streets": "Streets",
-      "business": "Business",
-      "vault": "Vault",
-      "leadership": "Leadership"
-    },
-    "archetype": {
-      "street": {
-        "label": "Street gang",
-        "summary": "Affiliate to Big Homie. Tag walls and earn the home turf bonus."
-      },
-      "mc": {
-        "label": "Motorcycle Club",
-        "summary": "Hangaround to President, 7 ranks. Leads bike formations and crafts tools."
-      },
-      "mafia": {
-        "label": "Mafia",
-        "summary": "Associate to Don. Buy business fronts, run rackets and laundering."
-      },
-      "cartel": {
-        "label": "Cartel",
-        "summary": "Halcón to Patrón. Operate the lab and craft criminal tools."
-      }
-    },
-    "colour": {
-      "0": "White",
-      "1": "Red",
-      "2": "Green",
-      "5": "Yellow",
-      "7": "Purple",
-      "11": "Cyan",
-      "25": "Pink",
-      "27": "Light blue",
-      "38": "Dark blue",
-      "47": "Orange"
-    }
+    "cannot_deposit": "Your rank can't deposit"
   },
   "charter": {
     "target": "Charter a gang",
@@ -277,7 +209,6 @@
     "not_here": "You're not at the charterer",
     "leave_first": "Leave your gang before you charter a new one",
     "full": "Every gang slot in the city is taken",
-    "pick_turf_colour": "Pick a home turf and a map colour",
     "need_bills": "You need %s in marked bills",
     "failed": "The charter failed. Your money is back.",
     "done": "%s is chartered. You're the %s.",
@@ -289,9 +220,6 @@
   "vault": {
     "withdrawal": "Withdrawal",
     "refund": "Refund, failed withdrawal",
-    "turf_moved": "Moved home turf to %s",
-    "hq_moved": "Moved HQ to %s",
-    "archetype_changed": "Became a %s",
     "charter_deposit": "Deposit at the charterer",
     "charter_withdrawal": "Withdrawal at the charterer"
   },
@@ -299,10 +227,8 @@
     "only": "Admins only",
     "rank_owner": "Owner",
     "rank_admin": "Admin",
-    "pick_colour": "Pick a map colour",
     "create_failed": "The gang couldn't be created",
     "gang_gone": "That gang no longer exists",
-    "archetype_failed": "The archetype change failed",
     "pick_player": "Pick a player",
     "add_failed": "That player couldn't be added",
     "put_you": "An admin put you in %s",
@@ -349,9 +275,6 @@
       "employee": "Employee",
       "this_week": "This week",
       "amount": "Amount",
-      "home_turf": "Home turf",
-      "map_colour": "Map colour",
-      "pick_turf": "Pick a turf",
       "pick_member": "Pick a member",
       "pick_day": "Pick a day",
       "per_payday": "%s per payday",
@@ -472,10 +395,6 @@
       "transaction": {
         "one": "%d transaction",
         "other": "%d transactions"
-      },
-      "turf_cooldown": {
-        "one": "Once an hour.",
-        "other": "Once every %d hours."
       }
     },
     "page": {
@@ -586,7 +505,7 @@
       "length": "Length",
       "hire_as_label": "Hire as"
     },
-    "org": {
+    "job": {
       "manager_menu": "Management",
       "staff_menu": "Staff menu",
       "needs_manager": "Needs a manager rank"
@@ -827,7 +746,7 @@
       "full": "Every gang slot in the city is taken.",
       "short": "You need %s more in marked bills.",
       "title": "Charter a gang",
-      "intro": "You start as %s of a new street gang. The charterer only takes marked bills.",
+      "intro": "You start as %s of a new gang. The charterer only takes marked bills.",
       "name": "Gang name",
       "name_hint": "%d to %d letters. Other gangs see this name.",
       "price": "Price",
@@ -842,10 +761,10 @@
       "nav": {
         "roster": "Roster",
         "permissions": "Rank permissions",
-        "vault": "Vault and turf",
-        "archetype": "Archetype"
+        "vault": "Vault"
       },
-      "rank_founder": "%s, founder"
+      "rank_founder": "%s, founder",
+      "subtitle": "Gang"
     },
     "roster": {
       "kick_title": "Kick %s?",
@@ -874,16 +793,16 @@
       "new_leader": "New leader"
     },
     "permissions": {
-      "subtitle": "What each rank can do in the street economy",
+      "subtitle": "What each rank can do",
       "permission": "Permission",
       "checkbox": "%s, %s",
-      "boss_note": "%s always has every permission. Defaults come from the %s archetype.",
+      "boss_note": "%s always has every permission.",
       "boss_rank": "The boss rank",
       "reset": "Reset to defaults",
       "save": "Save permissions"
     },
     "vault": {
-      "subtitle": "Dirty money, home turf and HQ",
+      "subtitle": "Marked bills the gang shares",
       "balance": "Vault, in marked bills",
       "deposits": "Deposits go through the charterer. Clean money can't go in.",
       "withdraw_amount": "Withdraw amount",
@@ -895,41 +814,7 @@
       "what": "What",
       "who": "Who",
       "empty": "Nothing has moved through the vault yet.",
-      "turf_hint": "Members earn the home turf bonus here.",
-      "turf_cost": "Moving costs %s from the vault.",
-      "turf_wait": "You can move it again in %s.",
-      "move_turf": "Move turf",
-      "hq": "HQ",
-      "no_hq": "No HQ yet",
-      "hq_moved": "Moved %s.",
-      "hq_wait": "You can move it again in %s for %s.",
-      "hq_cost": "A new spot costs %s from the vault.",
-      "pick_spot": "Pick a new spot"
-    },
-    "archetype": {
-      "check_age": "Founded %d days ago or more",
-      "check_members": "At least %d members",
-      "check_vault": "%s in the vault",
-      "check_cooldown": "No change in the last %d days",
-      "time_left": "%s left",
-      "changed_on": "Changed %s",
-      "never_changed": "Never changed",
-      "check_price": "Vault covers the price",
-      "short": "%s short",
-      "covered": "Covered",
-      "hint_short": "The %s comes out of the vault, so it needs %s more first.",
-      "hint_checks": "Every line above needs a green check first.",
-      "hint_ready": "The %s comes out of the vault.",
-      "subtitle": "%s since %s",
-      "pick": "Pick what the gang becomes",
-      "current": "Current",
-      "no_way_back": "Ranks and permissions switch to the new archetype. Members keep their place on the ladder. There is no way back to %s yet.",
-      "old_archetype": "the old archetype",
-      "before": "Before you can upgrade",
-      "every_line": "Every line needs a green check.",
-      "become": "Become a %s",
-      "become_title": "Become a %s?",
-      "become_body": "%s leaves the vault now. Ranks and permissions switch to the %s ladder and members keep their place."
+      "no_deposit": "Your rank can't deposit. The boss can change that under Rank permissions."
     },
     "admin": {
       "title": "Gangs",
@@ -943,9 +828,6 @@
       "details": "Details",
       "display_name": "Display name",
       "name_placeholder": "Gang name",
-      "archetype": "Archetype",
-      "archetype_hint": "Skips the vault cost and the upgrade checks.",
-      "no_turf": "No home turf",
       "save_details": "Save details",
       "create_gang": "Create gang",
       "delete_gang": "Delete gang",

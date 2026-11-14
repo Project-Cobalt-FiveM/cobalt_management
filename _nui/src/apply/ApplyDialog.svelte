@@ -11,7 +11,7 @@
   import { list, money, plural, shortDate } from '../lib/format';
   import { t } from '../lib/locale.svelte';
   import { rise } from '../lib/motion';
-  import { orgIcon } from '../org/meta';
+  import { jobIcon } from '../job/meta';
   import type { ApplySession } from '../lib/types';
 
   let { session }: { session: ApplySession } = $props();
@@ -26,18 +26,18 @@
   function submit() {
     if (!valid) return;
 
-    const payload = { org: session.org.name, message: message.trim() };
+    const payload = { job: session.job.name, message: message.trim() };
     void send.run(() => fetchNui('apply:send', payload));
   }
 </script>
 
 <div class="fixed inset-0 flex items-center justify-center">
-  <div class="flex w-190 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-lg" role="dialog" aria-modal="true" aria-label={t('ui.apply.aria', session.org.label)} transition:rise={{ duration: 300 }}>
+  <div class="flex w-190 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-lg" role="dialog" aria-modal="true" aria-label={t('ui.apply.aria', session.job.label)} transition:rise={{ duration: 300 }}>
     <header class="flex h-18 shrink-0 items-center gap-3 border-b border-border px-6">
-      <Mark icon={orgIcon(session.org.type)} logo={session.org.logoUrl} />
+      <Mark icon={jobIcon(session.job.type)} logo={session.job.logoUrl} />
       <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span class="truncate text-15 font-semibold">{session.org.label}</span>
-        <span class="truncate text-xs text-muted-foreground">{session.org.typeLabel}</span>
+        <span class="truncate text-15 font-semibold">{session.job.label}</span>
+        <span class="truncate text-xs text-muted-foreground">{session.job.typeLabel}</span>
       </div>
       <CloseHint />
     </header>

@@ -18,9 +18,6 @@ local chartererSpot
 
 local placement = 0
 
----@type table<string, { blip: integer, zone: integer? }>
-local hqs <const> = {}
-
 ---@return boolean
 local function inGang()
     return Membership.gang() ~= nil
@@ -145,63 +142,10 @@ local function placeCharterer(location)
     })
 end
 
----@param name string
-local function removeHq(name)
-    local hq <const> = hqs[name]
-
-    if not hq then return end
-
-    RemoveBlip(hq.blip)
-
-    if hq.zone then exports.ox_target:removeZone(hq.zone) end
-
-    hqs[name] = nil
-end
-
----@param name string
----@param hq { x: number, y: number, z: number, label: string, colour: integer }
-local function placeHq(name, hq)
-    local blip <const> = AddBlipForCoord(hq.x, hq.y, hq.z)
-
-    SetBlipSprite(blip, 492)
-    SetBlipColour(blip, hq.colour or 0)
-    SetBlipScale(blip, 0.75)
-    SetBlipAsShortRange(blip, true)
-    BeginTextCommandSetBlipName('STRING')
-    AddTextComponentSubstringPlayerName(hq.label)
-    EndTextCommandSetBlipName(blip)
-
-    local zone <const> = exports.ox_target:addSphereZone({
-        coords = vec3(hq.x, hq.y, hq.z),
-        radius = 1.5,
-        options = {
-            {
-                name = 'cobalt_management:hq:' .. name,
-                label = locale('gang.hq_target'),
-                icon = 'fas fa-flag',
-                distance = 2.5,
-                canInteract = function() return Membership.inGang(name) end,
-                onSelect = function() Nui.open('gang') end,
-            },
-        },
-    })
-
-    hqs[name] = { blip = blip, zone = zone }
-end
-
----@param list? table<string, { x: number, y: number, z: number, label: string, colour: integer }>
-local function syncHqs(list)
-    for name in pairs(hqs) do removeHq(name) end
-
-    for name, hq in pairs(list or {}) do placeHq(name, hq) end
-end
-
 AddStateBagChangeHandler('cobaltCharterer', 'global', function(_, _, value) placeCharterer(value) end)
-AddStateBagChangeHandler('cobaltGangHqs', 'global', function(_, _, value) syncHqs(value) end)
 
 CreateThread(function()
     placeCharterer(GlobalState.cobaltCharterer)
-    syncHqs(GlobalState.cobaltGangHqs)
 end)
 
 exports.ox_target:addGlobalPlayer({
@@ -238,81 +182,8 @@ RegisterNetEvent('cobalt_management:gangInvite', function(gangName, gangLabel, i
     TriggerServerEvent('cobalt_management:answerInvite', gangName, answer == 'confirm')
 end)
 
-local picking = false
-
----@param maxDistance number meters
----@param color integer[] r, g, b, a
----@return vector3?
-local function aimAtPoint(maxDistance, color)
-    while picking do
-        local hit <const>, _, coords <const> = lib.raycast.fromCamera(511, 4, maxDistance)
-
-        DisableControlAction(0, 24, true)
-
-        if hit and coords then
-            DrawMarker(28, coords.x, coords.y, coords.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.4, 0.4, 0.4,
-                color[1], color[2], color[3], color[4], false, false, 2, false)
-
-            if IsDisabledControlJustPressed(0, 24) then return coords end
-        end
-
-        if IsControlJustPressed(0, 73) then return end
-
-        Wait(0)
-    end
-end
-
----@param prompt string
----@param maxDistance number meters
----@param color integer[] r, g, b, a
----@return vector3?
-local function pickPoint(prompt, maxDistance, color)
-    if LocalPlayer.state.isDead or LocalPlayer.state.cuffed then return end
-
-    picking = true
-    core:ShowTextUI(prompt)
-
-    local coords <const> = aimAtPoint(maxDistance, color)
-
-    picking = false
-    core:HideTextUI()
-
-    return coords
-end
-
----@param value any
-local function cancelPickWhenRestrained(_, _, value)
-    if value then picking = false end
-end
-
-AddStateBagChangeHandler('isDead', ('player:%s'):format(cache.serverId), cancelPickWhenRestrained)
-AddStateBagChangeHandler('cuffed', ('player:%s'):format(cache.serverId), cancelPickWhenRestrained)
-
-RegisterNetEvent('cobalt_core:Client:OnPlayerUnload', function()
-    picking = false
-end)
-
-local HQ_MARKER <const> = { 80, 120, 215, 200 }
-
-RegisterNetEvent('cobalt_management:pickHq', function(maxDistance)
-    local coords <const> = pickPoint(locale('gang.hq_prompt'), maxDistance, HQ_MARKER)
-
-    if not coords then return end
-
-    local street <const> = GetStreetNameFromHashKey(GetStreetNameAtCoord(coords.x, coords.y, coords.z))
-    local area <const> = GetLabelText(GetNameOfZone(coords.x, coords.y, coords.z))
-
-    TriggerServerEvent('cobalt_management:hqPicked', {
-        x = coords.x, y = coords.y, z = coords.z, w = GetEntityHeading(cache.ped),
-    }, ('%s, %s'):format(street, area))
-end)
-
 AddEventHandler('onResourceStop', function(resource)
     if resource ~= cache.resource then return end
 
     removeChartererPoint()
-
-    for name in pairs(hqs) do removeHq(name) end
-
-    if picking then core:HideTextUI() end
 end)

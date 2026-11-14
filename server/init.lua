@@ -1,10 +1,8 @@
 local config <const> = require 'config.server'
-local db <const> = require 'server.db'
-local Orgs <const> = require 'server.orgs'
+local Jobs <const> = require 'server.jobs.registry'
 local Members <const> = require 'server.members'
-local Menu <const> = require 'server.menu'
-local Staff <const> = require 'server.staff'
-local Util <const> = require 'server.util'
+local Menu <const> = require 'server.jobs.menu'
+local Staff <const> = require 'server.jobs.staff'
 local GangStore <const> = require 'server.gangs.store'
 local Gangs <const> = require 'server.gangs.service'
 local GangMenu <const> = require 'server.gangs.menu'
@@ -16,11 +14,9 @@ require 'server.commands'
 
 local Cobalt <const> = exports.cobalt_core:GetCoreObject()
 
-local SHIFT_TICK_MINUTES <const> = 5
-
 ---@type table<string, fun(source: integer, data: table): table?, string?>
 local opens <const> = {
-    org = function(source)
+    job = function(source)
         local actor <const> = Staff.actor(source)
 
         if not actor then
@@ -46,11 +42,11 @@ local opens <const> = {
         return GangAdmin.session(source)
     end,
     apply = function(source, data)
-        if type(data.org) ~= 'string' then
+        if type(data.job) ~= 'string' then
             return nil, locale('apply.pick_job')
         end
 
-        return Menu.applySession(source, data.org)
+        return Menu.applySession(source, data.job)
     end,
     charter = function(source)
         return Charterer.session(source)
@@ -74,7 +70,7 @@ lib.callback.register('cobalt_management:request', function(source, name, data)
 
     if name:sub(1, 5) == 'gang:' then return GangMenu.request(source, name, data) end
     if name:sub(1, 6) == 'admin:' then return GangAdmin.request(source, name, data) end
-    if name == 'apply:send' then return Menu.apply(source, data.org, data.message) end
+    if name == 'apply:send' then return Menu.apply(source, data.job, data.message) end
     if name == 'charter:send' then return Charterer.found(source, data) end
     if name == 'nearbyPlayers' then return Menu.nearby(source, config.hireRadius) end
 
@@ -84,8 +80,8 @@ end)
 lib.callback.register('cobalt_management:applicable', function()
     local out <const> = {}
 
-    for name, org in pairs(Orgs.all()) do
-        if not org.isGang and Orgs.feature(name, 'applications') then out[#out + 1] = { name = name, label = org.label } end
+    for name, job in pairs(Jobs.all()) do
+        if Jobs.feature(name, 'applications') then out[#out + 1] = { name = name, label = job.label } end
     end
 
     table.sort(out, function(a, b) return a.label < b.label end)
@@ -97,8 +93,8 @@ RegisterNetEvent('cobalt_management:answerInvite', function(gangName, accept)
     Gangs.answerInvite(source, gangName, accept == true)
 end)
 
-RegisterNetEvent('cobalt_management:answerOffer', function(orgName, accept)
-    Staff.answerOffer(source, orgName, accept == true)
+RegisterNetEvent('cobalt_management:answerOffer', function(jobName, accept)
+    Staff.answerOffer(source, jobName, accept == true)
 end)
 
 RegisterNetEvent('cobalt_management:charterDeposit', function(amount)
@@ -107,18 +103,6 @@ end)
 
 RegisterNetEvent('cobalt_management:charterWithdraw', function(amount)
     Charterer.withdraw(source, amount)
-end)
-
-RegisterNetEvent('cobalt_management:hqPicked', function(coords, label)
-    local source <const> = source
-    local actor <const> = Gangs.actor(source)
-
-    if not actor or type(coords) ~= 'table' then return end
-    if type(coords.x) ~= 'number' or type(coords.y) ~= 'number' or type(coords.z) ~= 'number' then return end
-
-    local ok <const>, err <const> = Gangs.moveHq(actor, coords, Util.text(label, 80) or locale('gang.unknown_spot'))
-
-    Util.notify(source, ok and locale('gang.hq_moved') or err --[[@as string]], ok and 'success' or 'error')
 end)
 
 local function bootstrap()
@@ -134,15 +118,8 @@ end
 
 CreateThread(function()
     MySQL.ready.await()
-    Orgs.refresh()
-    Orgs.loadSettings()
+    Jobs.refresh()
+    Jobs.loadSettings()
     GangStore.load()
-    Orgs.refresh()
-
-    local closed <const> = db.closeOpenShifts(SHIFT_TICK_MINUTES)
-
-    if closed > 0 then lib.print.info(('closed %d shifts left open by the last run'):format(closed)) end
-
     bootstrap()
-    SetInterval(db.tickShifts, SHIFT_TICK_MINUTES * 60000)
 end)

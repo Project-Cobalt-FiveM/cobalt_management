@@ -1,52 +1,30 @@
 <script lang="ts">
-  import MapPin from 'phosphor-svelte/lib/MapPin';
   import TopBar from '../components/shell/TopBar.svelte';
   import Body from '../components/shell/Body.svelte';
   import Main from '../components/shell/Main.svelte';
-  import Side from '../components/shell/Side.svelte';
   import Button from '../components/ui/Button.svelte';
-  import Select from '../components/ui/Select.svelte';
   import MoneyInput from '../components/ui/MoneyInput.svelte';
   import ErrorText from '../components/ui/ErrorText.svelte';
   import { Action, app } from '../lib/store.svelte';
   import { fetchNui } from '../lib/nui';
-  import { ago, isFuture, money, plural, signedMoney, stamp, wait } from '../lib/format';
+  import { money, signedMoney, stamp } from '../lib/format';
   import { t } from '../lib/locale.svelte';
   import type { GangSession } from '../lib/types';
 
   let { session }: { session: GangSession } = $props();
 
   const withdraw = new Action();
-  const turf = new Action();
-  const hq = new Action();
 
   let amount = $state<number | null>(null);
-  let zone = $state<string | null>(null);
-
-  const storedZone = $derived(session.turf.zone ?? null);
-
-  $effect.pre(() => {
-    zone = storedZone;
-  });
 
   const vault = $derived(session.vault);
   const tooMuch = $derived(amount !== null && amount > vault.balance);
-  const zones = $derived(session.turf.zones.map((entry) => ({ value: entry.id, label: entry.label })));
-  const turfWait = $derived(isFuture(session.turf.cooldownEndsAt, app.now) ? session.turf.cooldownEndsAt : null);
-  const hqWait = $derived(isFuture(session.hq.cooldownEndsAt, app.now) ? session.hq.cooldownEndsAt : null);
 
   async function takeOut() {
     if (amount === null || tooMuch) return;
 
     const value = amount;
     if (await withdraw.run(() => fetchNui('gang:withdraw', { amount: value }))) amount = null;
-  }
-
-  function moveTurf() {
-    if (!zone) return;
-
-    const target = zone;
-    void turf.run(() => fetchNui('gang:moveTurf', { zone: target }));
   }
 </script>
 
@@ -59,7 +37,7 @@
         <div class="flex flex-1 flex-col gap-1.5">
           <span class="text-13 font-medium text-muted-foreground">{t('ui.vault.balance')}</span>
           <span class="text-[2.75rem] leading-12 font-semibold tracking-[-0.02em] tabular-nums">{money(vault.balance)}</span>
-          <p class="text-sm text-muted-foreground">{t('ui.vault.deposits')}</p>
+          <p class="text-sm text-muted-foreground">{vault.canDeposit ? t('ui.vault.deposits') : t('ui.vault.no_deposit')}</p>
         </div>
         {#if vault.canWithdraw}
           <div class="flex shrink-0 flex-col items-end gap-1.5">
@@ -76,6 +54,7 @@
       <div class="flex flex-col gap-1.5">
         <span class="text-13 font-medium text-muted-foreground">{t('ui.vault.balance')}</span>
         <p class="text-sm text-muted-foreground">{t('ui.vault.hidden')}</p>
+        <p class="text-sm text-muted-foreground">{vault.canDeposit ? t('ui.vault.deposits') : t('ui.vault.no_deposit')}</p>
       </div>
     {/if}
 
@@ -103,41 +82,4 @@
       </section>
     {/if}
   </Main>
-
-  <Side width="w-100" class="gap-0">
-    <section class="flex flex-col gap-3">
-      <div class="flex flex-col gap-1">
-        <h2 class="text-base font-semibold">{t('ui.common.home_turf')}</h2>
-        <p class="text-13 text-muted-foreground">{t('ui.vault.turf_hint')}</p>
-      </div>
-      <Select label={t('ui.common.home_turf')} icon={MapPin} placeholder={t('ui.common.pick_turf')} options={zones} bind:value={zone} disabled={!session.turf.canMove} onchange={() => turf.clear()} />
-      <div class="flex items-center gap-3">
-        <p class="flex-1 text-xs text-muted-foreground tabular-nums">
-          {t('ui.vault.turf_cost', money(session.turf.cost))}
-          {turfWait ? t('ui.vault.turf_wait', wait(turfWait, app.now)) : plural(session.turf.cooldownHours, 'ui.plural.turf_cooldown')}
-        </p>
-        {#if session.turf.canMove}
-          <Button size="xs" disabled={!zone || zone === session.turf.zone || turfWait !== null || turf.busy} onclick={moveTurf}>{t('ui.vault.move_turf')}</Button>
-        {/if}
-      </div>
-      <ErrorText error={turf.error} />
-    </section>
-
-    <section class="mt-6 flex flex-col gap-3 border-t border-border pt-6">
-      <div class="flex flex-col gap-1">
-        <h2 class="text-base font-semibold">{t('ui.vault.hq')}</h2>
-        <p class="text-13 text-muted-foreground">{session.hq.label ?? t('ui.vault.no_hq')}</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <p class="flex-1 text-xs text-muted-foreground tabular-nums">
-          {#if session.hq.movedAt}{t('ui.vault.hq_moved', ago(session.hq.movedAt, app.now))}{/if}
-          {hqWait ? t('ui.vault.hq_wait', wait(hqWait, app.now), money(session.hq.cost)) : t('ui.vault.hq_cost', money(session.hq.cost))}
-        </p>
-        {#if session.hq.canMove}
-          <Button size="xs" disabled={hqWait !== null || hq.busy} onclick={() => hq.run(() => fetchNui('gang:pickHq'))}>{t('ui.vault.pick_spot')}</Button>
-        {/if}
-      </div>
-      <ErrorText error={hq.error} />
-    </section>
-  </Side>
 </Body>

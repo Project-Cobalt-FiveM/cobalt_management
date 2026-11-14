@@ -9,7 +9,7 @@
   import { Action } from '../lib/store.svelte';
   import { fetchNui } from '../lib/nui';
   import { t } from '../lib/locale.svelte';
-  import type { AdminGang, AdminMember, AdminSession } from '../lib/types';
+  import type { AdminGang, AdminSession, GangMember } from '../lib/types';
 
   let { session, gang, oncreated }: { session: AdminSession; gang: AdminGang | null; oncreated: (name: string | null) => void } = $props();
 
@@ -18,10 +18,7 @@
   const remove = new Action();
 
   let label = $state('');
-  let archetype = $state<string | null>(null);
-  let homeTurf = $state<string | null>(null);
-  let blipColor = $state<number | null>(null);
-  let roster = $state<AdminMember[] | null>(null);
+  let roster = $state<GangMember[] | null>(null);
   let adding = $state<string | null>(null);
   let deleting = $state(false);
 
@@ -29,9 +26,6 @@
 
   function seedDrafts() {
     label = gang?.label ?? '';
-    archetype = gang?.archetype ?? session.archetypes[0]?.id ?? null;
-    homeTurf = gang?.homeTurf ?? null;
-    blipColor = gang?.blipColor ?? session.colours[0]?.id ?? null;
   }
 
   $effect.pre(() => {
@@ -39,10 +33,7 @@
     untrack(seedDrafts);
   });
 
-  const archetypes = $derived(session.archetypes.map((entry) => ({ value: entry.id, label: entry.label })));
-  const zones = $derived(session.zones.map((zone) => ({ value: zone.id, label: zone.label })));
-  const colours = $derived(session.colours.map((entry) => ({ value: entry.id, label: entry.label, swatch: entry.hex })));
-  const ranks = $derived([...(session.archetypes.find((entry) => entry.id === gang?.archetype)?.ranks ?? [])].sort((a, b) => b.grade - a.grade));
+  const ranks = $derived([...(gang?.ranks ?? [])].sort((a, b) => b.grade - a.grade));
   const rankOptions = $derived(ranks.map((rank) => ({ value: rank.grade, label: t('ui.admin.rank_option', rank.grade, rank.name) })));
   const lowest = $derived(ranks.at(-1)?.grade ?? 0);
   const candidates = $derived(
@@ -50,7 +41,7 @@
       .filter((player) => !roster?.some((member) => member.citizenid === player.citizenid))
       .map((player) => ({ value: player.citizenid, label: player.gangLabel ? t('ui.admin.candidate_in_gang', player.name, player.gangLabel) : player.name })),
   );
-  const valid = $derived(label.trim().length >= session.nameLength.min && archetype !== null && blipColor !== null);
+  const valid = $derived(label.trim().length >= session.nameLength.min);
 
   async function loadMembers(name: string) {
     try {
@@ -65,9 +56,9 @@
   });
 
   async function saveDetails() {
-    if (!valid || archetype === null || blipColor === null) return;
+    if (!valid) return;
 
-    const payload = { label: label.trim(), archetype, homeTurf: homeTurf ?? '', blipColor };
+    const payload = { label: label.trim() };
 
     if (gang) {
       const name = gang.name;
@@ -120,23 +111,6 @@
       <span class="text-sm font-semibold">{t('ui.admin.display_name')}</span>
       <input class="field" placeholder={t('ui.admin.name_placeholder')} maxlength={session.nameLength.max} bind:value={label} oninput={() => details.clear()} />
     </label>
-
-    <div class="flex flex-col gap-2">
-      <span class="text-sm font-semibold">{t('ui.admin.archetype')}</span>
-      <Select label={t('ui.admin.archetype')} options={archetypes} bind:value={archetype} />
-      <span class="text-xs text-muted-foreground">{t('ui.admin.archetype_hint')}</span>
-    </div>
-
-    <div class="grid grid-cols-2 gap-3">
-      <div class="flex flex-col gap-2">
-        <span class="text-sm font-semibold">{t('ui.common.home_turf')}</span>
-        <Select label={t('ui.common.home_turf')} placeholder={t('ui.admin.no_turf')} options={zones} bind:value={homeTurf} />
-      </div>
-      <div class="flex flex-col gap-2">
-        <span class="text-sm font-semibold">{t('ui.common.map_colour')}</span>
-        <Select label={t('ui.common.map_colour')} options={colours} bind:value={blipColor} />
-      </div>
-    </div>
 
     <div>
       <Button variant="primary" disabled={!valid || details.busy} onclick={saveDetails}>

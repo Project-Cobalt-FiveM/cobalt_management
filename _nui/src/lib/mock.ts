@@ -2,21 +2,20 @@ import type { MockHandlers } from './nui';
 import { toDay } from './format';
 import type {
   Access,
-  AdminMember,
   AdminSession,
   ApplySession,
   CharterSession,
   Employee,
+  GangMember,
+  GangPermission,
   GangRank,
   GangSession,
   Iso,
-  MapColour,
-  OrgSession,
+  JobSession,
   Rank,
   RequestItem,
   Result,
   Session,
-  Zone,
 } from './types';
 
 const MINUTE = 60000;
@@ -221,13 +220,13 @@ function person(citizenid: string): Employee {
   return found;
 }
 
-function ownerSession(): OrgSession {
+function ownerSession(): JobSession {
   const tony = person('LKR20311');
 
   return {
-    mode: 'org',
+    mode: 'job',
     now: new Date(now).toISOString(),
-    org: { ...lsc },
+    job: { ...lsc },
     me: {
       citizenid: tony.citizenid,
       name: tony.name,
@@ -292,7 +291,7 @@ function ownerSession(): OrgSession {
   };
 }
 
-function staffSession(withJobs: boolean): OrgSession {
+function staffSession(withJobs: boolean): JobSession {
   const base = ownerSession();
   const rosa = person('PZE55102');
 
@@ -332,118 +331,77 @@ function staffSession(withJobs: boolean): OrgSession {
 }
 
 const gangRanks: GangRank[] = [
-  { grade: 0, name: 'Affiliate', isBoss: false },
-  { grade: 1, name: 'Hitta', isBoss: false },
-  { grade: 2, name: 'Soldier', isBoss: false },
-  { grade: 3, name: 'Lieutenant', isBoss: false },
-  { grade: 4, name: 'Shotcaller', isBoss: false },
-  { grade: 5, name: 'Big Homie', isBoss: true },
+  { grade: 0, name: 'Recruit', isBoss: false },
+  { grade: 1, name: 'Soldier', isBoss: false },
+  { grade: 2, name: 'Lieutenant', isBoss: false },
+  { grade: 3, name: 'Underboss', isBoss: false },
+  { grade: 4, name: 'Boss', isBoss: true },
 ];
 
-const zones: Zone[] = [
-  { id: 'davis', label: 'Davis' },
-  { id: 'strawberry', label: 'Strawberry' },
-  { id: 'rancho', label: 'Rancho' },
-  { id: 'chamberlain', label: 'Chamberlain Hills' },
-  { id: 'vespucci', label: 'Vespucci' },
-  { id: 'mirrorpark', label: 'Mirror Park' },
-  { id: 'sandy', label: 'Sandy Shores' },
+const builtInRanks: GangRank[] = [
+  { grade: 0, name: 'Recruit', isBoss: false },
+  { grade: 1, name: 'Enforcer', isBoss: false },
+  { grade: 2, name: 'Shot Caller', isBoss: false },
+  { grade: 3, name: 'Boss', isBoss: true },
 ];
 
-const colours: MapColour[] = [
-  { id: 0, label: 'White', hex: '#fafafa' },
-  { id: 1, label: 'Red', hex: '#e03232' },
-  { id: 2, label: 'Green', hex: '#72cc72' },
-  { id: 5, label: 'Yellow', hex: '#eec64e' },
-  { id: 7, label: 'Purple', hex: '#9a6ab6' },
-  { id: 11, label: 'Cyan', hex: '#5fd0c9' },
-  { id: 27, label: 'Light blue', hex: '#8ec1f0' },
-  { id: 47, label: 'Orange', hex: '#f49b29' },
-];
-
-const streetDefaults: Record<string, string[]> = {
-  '0': ['tag_wall', 'homeland_bonus'],
-  '1': ['tag_wall', 'homeland_bonus', 'racket_claim'],
-  '2': ['tag_wall', 'homeland_bonus', 'racket_claim', 'racket_launder', 'vinscratch_perfect'],
-  '3': ['tag_wall', 'homeland_bonus', 'racket_claim', 'racket_launder', 'racket_raid', 'vinscratch_perfect', 'vault_view', 'turf_set'],
-  '4': ['tag_wall', 'homeland_bonus', 'racket_claim', 'racket_launder', 'racket_raid', 'vinscratch_perfect', 'vault_view', 'vault_withdraw', 'vault_audit', 'turf_set'],
+const defaultPermissions: Record<string, GangPermission[]> = {
+  '0': ['vault_deposit', 'gang_invite'],
+  '1': ['vault_deposit', 'gang_invite'],
+  '2': ['vault_view', 'vault_deposit', 'gang_invite'],
+  '3': ['vault_view', 'vault_deposit', 'vault_withdraw', 'vault_audit', 'gang_invite'],
 };
 
 function gangSession(): GangSession {
   return {
     mode: 'gang',
     now: new Date(now).toISOString(),
-    gang: { name: 'davis_kings', label: 'Davis Avenue Kings', archetype: 'street', archetypeLabel: 'Street gang', foundedAt: at(13) },
-    me: { citizenid: 'RXM30217', name: 'Andre Wallace', grade: 5, rank: 'Big Homie', isBoss: true, isFounder: true, permissions: [] },
+    gang: { name: 'davis_kings', label: 'Davis Avenue Kings', foundedAt: at(13) },
+    me: {
+      citizenid: 'RXM30217',
+      name: 'Andre Wallace',
+      grade: 4,
+      rank: 'Boss',
+      isBoss: true,
+      isFounder: true,
+      permissions: ['vault_view', 'vault_deposit', 'vault_withdraw', 'vault_audit', 'gang_invite'],
+    },
     ranks: structuredClone(gangRanks),
     members: [
-      { citizenid: 'RXM30217', name: 'Andre Wallace', grade: 5, rank: 'Big Homie', isBoss: true, online: true, joinedAt: at(13) },
-      { citizenid: 'HKW49120', name: 'Darnell Price', grade: 4, rank: 'Shotcaller', isBoss: false, online: true, joinedAt: at(13) },
-      { citizenid: 'ZPL66031', name: 'Tasha Greene', grade: 3, rank: 'Lieutenant', isBoss: false, online: false, joinedAt: at(12) },
-      { citizenid: 'QFT10388', name: 'Jerome Banks', grade: 2, rank: 'Soldier', isBoss: false, online: true, joinedAt: at(10) },
-      { citizenid: 'BNM22841', name: 'Lil Remy Carter', grade: 2, rank: 'Soldier', isBoss: false, online: false, joinedAt: at(7) },
-      { citizenid: 'CVX93502', name: 'Kenny Ortiz', grade: 1, rank: 'Hitta', isBoss: false, online: true, joinedAt: at(4) },
-      { citizenid: 'DLK11473', name: 'Malik Johnson', grade: 0, rank: 'Affiliate', isBoss: false, online: false, joinedAt: at(1) },
+      { citizenid: 'RXM30217', name: 'Andre Wallace', grade: 4, rank: 'Boss', isBoss: true, online: true, joinedAt: at(13) },
+      { citizenid: 'HKW49120', name: 'Darnell Price', grade: 3, rank: 'Underboss', isBoss: false, online: true, joinedAt: at(13) },
+      { citizenid: 'ZPL66031', name: 'Tasha Greene', grade: 2, rank: 'Lieutenant', isBoss: false, online: false, joinedAt: at(12) },
+      { citizenid: 'QFT10388', name: 'Jerome Banks', grade: 1, rank: 'Soldier', isBoss: false, online: true, joinedAt: at(10) },
+      { citizenid: 'BNM22841', name: 'Lil Remy Carter', grade: 1, rank: 'Soldier', isBoss: false, online: false, joinedAt: at(7) },
+      { citizenid: 'CVX93502', name: 'Kenny Ortiz', grade: 0, rank: 'Recruit', isBoss: false, online: true, joinedAt: at(4) },
+      { citizenid: 'DLK11473', name: 'Malik Johnson', grade: 0, rank: 'Recruit', isBoss: false, online: false, joinedAt: at(1) },
     ],
     inviteRadius: 8,
     permissionCatalog: [
-      { id: 'tag_wall', label: 'Tag walls', group: 'Streets' },
-      { id: 'homeland_bonus', label: 'Home turf payout bonus', group: 'Streets' },
-      { id: 'racket_claim', label: 'Claim businesses', group: 'Business' },
-      { id: 'racket_launder', label: 'Run laundering', group: 'Business' },
-      { id: 'racket_raid', label: 'Lead raids on rivals', group: 'Business' },
-      { id: 'vinscratch_perfect', label: 'Perfect VIN scrubs', group: 'Business' },
-      { id: 'vault_view', label: 'See the vault', group: 'Vault' },
-      { id: 'vault_withdraw', label: 'Withdraw from the vault', group: 'Vault' },
-      { id: 'vault_audit', label: 'See vault history', group: 'Vault' },
-      { id: 'turf_set', label: 'Move home turf and HQ', group: 'Leadership' },
-      { id: 'gang_invite', label: 'Invite players', group: 'Leadership' },
+      { id: 'vault_view', label: 'See the vault' },
+      { id: 'vault_deposit', label: 'Deposit into the vault' },
+      { id: 'vault_withdraw', label: 'Withdraw from the vault' },
+      { id: 'vault_audit', label: 'See vault history' },
+      { id: 'gang_invite', label: 'Invite players' },
     ],
-    permissions: {
-      '0': ['tag_wall', 'homeland_bonus'],
-      '1': ['tag_wall', 'homeland_bonus', 'racket_claim'],
-      '2': ['tag_wall', 'homeland_bonus', 'racket_claim'],
-      '3': ['tag_wall', 'homeland_bonus', 'racket_claim', 'racket_launder', 'vault_view', 'vault_audit', 'gang_invite'],
-      '4': ['tag_wall', 'homeland_bonus', 'racket_claim', 'racket_launder', 'racket_raid', 'vinscratch_perfect', 'vault_view', 'vault_withdraw', 'vault_audit', 'turf_set', 'gang_invite'],
-    },
+    permissions: structuredClone(defaultPermissions),
     vault: {
       balance: 612400,
       canSee: true,
+      canDeposit: true,
       canWithdraw: true,
       canSeeHistory: true,
       history: [
-        { id: 4, at: at(0, 1, 12), what: 'Deposit at the charterer', who: 'Jerome Banks', amount: 48500 },
-        { id: 3, at: at(1, 22, 0), what: 'Moved HQ to Grove Street garage', who: 'Andre Wallace', amount: -25000 },
+        { id: 3, at: at(0, 1, 12), what: 'Deposit at the charterer', who: 'Jerome Banks', amount: 48500 },
         { id: 2, at: at(2, 20, 0), what: 'Withdrawal', who: 'Darnell Price', amount: -10000 },
         { id: 1, at: at(4, 23, 0), what: 'Deposit at the charterer', who: 'Tasha Greene', amount: 91200 },
       ],
     },
-    turf: { zone: 'davis', zones: structuredClone(zones), cost: 50000, cooldownHours: 24, cooldownEndsAt: null, canMove: true },
-    hq: { label: 'Grove Street garage, Davis', movedAt: at(1, 22, 0), cost: 25000, cooldownEndsAt: inMinutes(580), canMove: true },
-    archetypes: [
-      { id: 'street', label: 'Street gang', summary: 'Affiliate to Big Homie. Tag walls, home turf bonus, perfect VIN scrubs.', ranks: 6, price: 0, current: true },
-      { id: 'mc', label: 'Motorcycle Club', summary: 'Hangaround to President, 7 ranks. Premium chop parts, clones that keep the owner, bike formations.', ranks: 7, price: 750000, current: false },
-      { id: 'mafia', label: 'Mafia', summary: 'Associate to Don. Buy business fronts, run rackets and laundering.', ranks: 6, price: 1000000, current: false },
-      { id: 'cartel', label: 'Cartel', summary: 'Halcón to Patrón. Operate the lab and craft criminal tools.', ranks: 6, price: 1000000, current: false },
-    ],
-    upgrade: { ageDays: 13, minAgeDays: 7, members: 7, minMembers: 5, vault: 612400, minVault: 500000, lastChangeAt: null, cooldownDays: 14, cooldownEndsAt: null },
   };
 }
 
-function ladder(names: string[]): GangRank[] {
-  return names.map((name, grade) => ({ grade, name, isBoss: grade === names.length - 1 }));
-}
-
-const adminMembers: Record<string, AdminMember[]> = {
-  davis_kings: [
-    { citizenid: 'RXM30217', name: 'Andre Wallace', grade: 5, online: true },
-    { citizenid: 'HKW49120', name: 'Darnell Price', grade: 4, online: true },
-    { citizenid: 'ZPL66031', name: 'Tasha Greene', grade: 3, online: false },
-    { citizenid: 'QFT10388', name: 'Jerome Banks', grade: 2, online: true },
-    { citizenid: 'BNM22841', name: 'Lil Remy Carter', grade: 2, online: false },
-    { citizenid: 'CVX93502', name: 'Kenny Ortiz', grade: 1, online: true },
-    { citizenid: 'DLK11473', name: 'Malik Johnson', grade: 0, online: false },
-  ],
+const adminMembers: Record<string, GangMember[]> = {
+  davis_kings: gangSession().members,
 };
 
 function adminSession(): AdminSession {
@@ -452,22 +410,14 @@ function adminSession(): AdminSession {
     now: new Date(now).toISOString(),
     admin: { name: 'Kai Turner', rank: 'Admin' },
     gangs: [
-      { name: 'ballas', label: 'Ballas', archetype: 'street', homeTurf: 'davis', blipColor: 7, members: 12, founderName: 'Big Smoke', foundedAt: at(120) },
-      { name: 'vagos', label: 'Vagos', archetype: 'street', homeTurf: 'rancho', blipColor: 5, members: 9, founderName: 'Luis Mendoza', foundedAt: at(98) },
-      { name: 'lostmc', label: 'The Lost MC', archetype: 'mc', homeTurf: 'sandy', blipColor: 1, members: 6, founderName: null, foundedAt: at(80) },
-      { name: 'davis_kings', label: 'Davis Avenue Kings', archetype: 'street', homeTurf: 'davis', blipColor: 0, members: 7, founderName: 'Andre Wallace', foundedAt: at(13) },
-      { name: 'vespucci_saints', label: 'Vespucci Saints', archetype: 'street', homeTurf: 'vespucci', blipColor: 27, members: 4, founderName: 'Nico Bell', foundedAt: at(6) },
+      { name: 'ballas', label: 'Ballas', ranks: structuredClone(builtInRanks), members: 12, founderName: null, foundedAt: at(120) },
+      { name: 'vagos', label: 'Vagos', ranks: structuredClone(builtInRanks), members: 9, founderName: null, foundedAt: at(98) },
+      { name: 'lostmc', label: 'The Lost MC', ranks: structuredClone(builtInRanks), members: 6, founderName: null, foundedAt: at(80) },
+      { name: 'davis_kings', label: 'Davis Avenue Kings', ranks: structuredClone(gangRanks), members: 7, founderName: 'Andre Wallace', foundedAt: at(13) },
+      { name: 'vespucci_saints', label: 'Vespucci Saints', ranks: structuredClone(gangRanks), members: 4, founderName: 'Nico Bell', foundedAt: at(6) },
     ],
     maxGangs: 8,
     nameLength: { min: 3, max: 32 },
-    archetypes: [
-      { id: 'street', label: 'Street gang', ranks: structuredClone(gangRanks) },
-      { id: 'mc', label: 'Motorcycle Club', ranks: ladder(['Hangaround', 'Prospect', 'Patched', 'Sergeant-at-Arms', 'Road Captain', 'Vice President', 'President']) },
-      { id: 'mafia', label: 'Mafia', ranks: ladder(['Associate', 'Soldier', 'Caporegime', 'Consigliere', 'Underboss', 'Don']) },
-      { id: 'cartel', label: 'Cartel', ranks: ladder(['Halcón', 'Mula', 'Sicario', 'Lugarteniente', 'Jefe de Plaza', 'Patrón']) },
-    ],
-    zones: structuredClone(zones),
-    colours: structuredClone(colours),
     onlinePlayers: [
       { serverId: 12, citizenid: 'TSM44120', name: 'Trey Simmons', gangLabel: null },
       { serverId: 18, citizenid: 'LMV90233', name: 'Luis Mendoza', gangLabel: 'Vagos' },
@@ -480,7 +430,7 @@ function applySession(): ApplySession {
   return {
     mode: 'apply',
     now: new Date(now).toISOString(),
-    org: { ...lsc },
+    job: { ...lsc },
     reviewers: ['Tony Ruiz', 'Keisha Moore'],
     startingRank: 'Apprentice',
     startingPay: 250,
@@ -498,14 +448,12 @@ function charterSession(): CharterSession {
     carried: 312000,
     slotsUsed: 5,
     maxSlots: 8,
-    bossRank: 'Big Homie',
-    zones: structuredClone(zones),
-    colours: structuredClone(colours),
+    bossRank: 'Boss',
     nameLength: { min: 3, max: 32 },
   };
 }
 
-let org = ownerSession();
+let job = ownerSession();
 let gang = gangSession();
 let admin = adminSession();
 let apply = applySession();
@@ -513,14 +461,14 @@ let apply = applySession();
 export function sessionFor(scene: string): Session {
   switch (scene) {
     case 'staff':
-      org = staffSession(false);
-      return structuredClone(org);
+      job = staffSession(false);
+      return structuredClone(job);
     case 'jobs':
-      org = staffSession(true);
-      return structuredClone(org);
+      job = staffSession(true);
+      return structuredClone(job);
     case 'empty':
-      org = { ...ownerSession(), requests: requests.filter((request) => request.status !== 'open') };
-      return structuredClone(org);
+      job = { ...ownerSession(), requests: requests.filter((request) => request.status !== 'open') };
+      return structuredClone(job);
     case 'gang':
       gang = gangSession();
       return structuredClone(gang);
@@ -533,33 +481,33 @@ export function sessionFor(scene: string): Session {
     case 'charter':
       return charterSession();
     default:
-      org = ownerSession();
-      return structuredClone(org);
+      job = ownerSession();
+      return structuredClone(job);
   }
 }
 
 function employee(citizenid: string): Employee | undefined {
-  return org.employees?.find((entry) => entry.citizenid === citizenid);
+  return job.employees?.find((entry) => entry.citizenid === citizenid);
 }
 
 function recount(): void {
-  for (const rank of org.ranks) rank.people = org.employees?.filter((entry) => entry.grade === rank.grade).length ?? 0;
-  if (org.stats && org.employees) org.stats.total = org.employees.length;
+  for (const rank of job.ranks) rank.people = job.employees?.filter((entry) => entry.grade === rank.grade).length ?? 0;
+  if (job.stats && job.employees) job.stats.total = job.employees.length;
 }
 
 function ledger(description: string, amount: number): void {
-  if (!org.society) return;
+  if (!job.society) return;
 
-  org.society.balance += amount;
-  org.society.transactions.unshift({ id: Date.now(), at: new Date().toISOString(), description, by: org.me.name, amount });
+  job.society.balance += amount;
+  job.society.transactions.unshift({ id: Date.now(), at: new Date().toISOString(), description, by: job.me.name, amount });
 }
 
 export const handlers: MockHandlers = {
   close: () => ({ ok: true }),
   setDuty: ({ onDuty }) => {
-    org.me.onDuty = onDuty;
-    org.me.shiftStartedAt = onDuty ? new Date().toISOString() : null;
-    return ok(org);
+    job.me.onDuty = onDuty;
+    job.me.shiftStartedAt = onDuty ? new Date().toISOString() : null;
+    return ok(job);
   },
   nearbyPlayers: () => [
     { serverId: 4, citizenid: 'MKD88140', name: 'Leon Hart', distance: 2, job: null, appliedAt: minutesAgo(120) },
@@ -569,12 +517,12 @@ export const handlers: MockHandlers = {
   hire: ({ citizenid }) => {
     if (employee(citizenid)) return fail('They already work here.');
 
-    return ok(org);
+    return ok(job);
   },
   fire: ({ citizenid }) => {
-    org.employees = org.employees?.filter((entry) => entry.citizenid !== citizenid) ?? null;
+    job.employees = job.employees?.filter((entry) => entry.citizenid !== citizenid) ?? null;
     recount();
-    return ok(org);
+    return ok(job);
   },
   setGrade: ({ citizenid, grade }) => {
     const target = employee(citizenid);
@@ -583,71 +531,71 @@ export const handlers: MockHandlers = {
     const rank = rankOf(grade);
     Object.assign(target, { grade, rank: rank.name, pay: rank.pay });
     recount();
-    return ok(org);
+    return ok(job);
   },
   giveBonus: ({ citizenid, amount }) => {
     const target = employee(citizenid);
     if (!target) return fail('That person no longer works here.');
-    if (org.society && org.society.balance < amount) return fail(`Not enough in the society account. It holds $${org.society.balance.toLocaleString('en-US')}.`);
+    if (job.society && job.society.balance < amount) return fail(`Not enough in the society account. It holds $${job.society.balance.toLocaleString('en-US')}.`);
 
     target.monthBonuses += amount;
     ledger(`Bonus to ${target.name}`, -amount);
-    return ok(org);
+    return ok(job);
   },
   answerRequest: ({ id, approve }) => {
-    const request = org.requests?.find((entry) => entry.id === id);
+    const request = job.requests?.find((entry) => entry.id === id);
     if (!request) return fail('That request was already answered.');
 
-    Object.assign(request, { status: approve ? 'approved' : 'declined', reviewedBy: org.me.name, reviewedAt: new Date().toISOString() });
-    return ok(org);
+    Object.assign(request, { status: approve ? 'approved' : 'declined', reviewedBy: job.me.name, reviewedAt: new Date().toISOString() });
+    return ok(job);
   },
   deposit: ({ amount, note }) => {
     ledger(note ? `Deposit, ${note}` : 'Deposit', amount);
-    return ok(org);
+    return ok(job);
   },
   withdraw: ({ amount, note }) => {
-    if (!org.society || org.society.balance < amount) return fail('Not enough in the society account.');
+    if (!job.society || job.society.balance < amount) return fail('Not enough in the society account.');
 
     ledger(note ? `Withdrawal, ${note}` : 'Withdrawal', -amount);
-    return ok(org);
+    return ok(job);
   },
   saveRank: ({ grade, pay, permissions }) => {
-    const rank = org.ranks.find((entry) => entry.grade === grade);
+    const rank = job.ranks.find((entry) => entry.grade === grade);
     if (!rank) return fail('That rank no longer exists.');
 
     Object.assign(rank, { pay, permissions });
-    return ok(org);
+    return ok(job);
   },
   buyVehicle: ({ model }) => {
-    const vehicle = org.vehicles?.catalogue.find((entry) => entry.model === model);
-    if (!vehicle || !org.vehicles) return fail('That vehicle is not for sale.');
-    if ((org.society?.balance ?? 0) < vehicle.price) return fail('Not enough in the society account.');
+    const vehicle = job.vehicles?.catalogue.find((entry) => entry.model === model);
+    if (!vehicle || !job.vehicles) return fail('That vehicle is not for sale.');
+    if ((job.society?.balance ?? 0) < vehicle.price) return fail('Not enough in the society account.');
 
-    const plate = `LSC ${org.vehicles.fleet.length.toString().padStart(2, '0')}`;
-    org.vehicles.fleet.unshift({ plate, model, label: vehicle.label, boughtBy: org.me.name, boughtAt: new Date().toISOString() });
+    const plate = `LSC ${job.vehicles.fleet.length.toString().padStart(2, '0')}`;
+    job.vehicles.fleet.unshift({ plate, model, label: vehicle.label, boughtBy: job.me.name, boughtAt: new Date().toISOString() });
     if (vehicle.price > 0) ledger(`Bought ${vehicle.label}, plate ${plate}`, -vehicle.price);
-    if (org.stats) org.stats.fleet = org.vehicles.fleet.length;
-    return ok(org);
+    if (job.stats) job.stats.fleet = job.vehicles.fleet.length;
+    return ok(job);
   },
   postAnnouncement: ({ title, message }) => {
-    org.announcements.unshift({ id: Date.now(), title, message, author: org.me.name, createdAt: new Date().toISOString() });
-    return ok(org);
+    job.announcements.unshift({ id: Date.now(), title, message, author: job.me.name, createdAt: new Date().toISOString() });
+    return ok(job);
   },
   saveLogo: ({ url }) => {
-    org.org.logoUrl = url || null;
-    return ok(org);
+    job.job.logoUrl = url || null;
+    return ok(job);
   },
   setFeature: ({ feature, enabled }) => {
-    org.features[feature] = enabled;
-    return ok(org);
+    job.features[feature] = enabled;
+    return ok(job);
   },
   sendLeave: ({ from, until, reason }) => {
-    org.myRequests.unshift({
+    job.myRequests.unshift({
       id: Date.now(),
       kind: 'leave',
       status: 'open',
-      citizenid: org.me.citizenid,
-      name: org.me.name,
+      citizenid: job.me.citizenid,
+      name: job.me.name,
       title: 'Leave',
       message: reason,
       startDate: from,
@@ -657,15 +605,15 @@ export const handlers: MockHandlers = {
       reviewedAt: null,
       applicant: null,
     });
-    return ok(org);
+    return ok(job);
   },
   sendReport: ({ title, message }) => {
-    org.myRequests.unshift({
+    job.myRequests.unshift({
       id: Date.now(),
       kind: 'report',
       status: 'open',
-      citizenid: org.me.citizenid,
-      name: org.me.name,
+      citizenid: job.me.citizenid,
+      name: job.me.name,
       title,
       message,
       startDate: null,
@@ -675,15 +623,15 @@ export const handlers: MockHandlers = {
       reviewedAt: null,
       applicant: null,
     });
-    return ok(org);
+    return ok(job);
   },
   makeMainJob: ({ name }) => {
-    org.myJobs = org.myJobs.map((job) => ({ ...job, isMain: job.name === name }));
-    return ok(org);
+    job.myJobs = job.myJobs.map((entry) => ({ ...entry, isMain: entry.name === name }));
+    return ok(job);
   },
   leaveJob: ({ name }) => {
-    org.myJobs = org.myJobs.filter((job) => job.name !== name);
-    return ok(org);
+    job.myJobs = job.myJobs.filter((entry) => entry.name !== name);
+    return ok(job);
   },
 
   'gang:nearby': () => [
@@ -703,7 +651,7 @@ export const handlers: MockHandlers = {
     return ok(gang);
   },
   'gang:resetPermissions': () => {
-    gang.permissions = structuredClone(streetDefaults);
+    gang.permissions = structuredClone(defaultPermissions);
     return ok(gang);
   },
   'gang:withdraw': ({ amount }) => {
@@ -713,26 +661,18 @@ export const handlers: MockHandlers = {
     gang.vault.history.unshift({ id: Date.now(), at: new Date().toISOString(), what: 'Withdrawal', who: gang.me.name, amount: -amount });
     return ok(gang);
   },
-  'gang:moveTurf': ({ zone }) => {
-    gang.turf.zone = zone;
-    gang.turf.cooldownEndsAt = inMinutes(1440);
-    gang.vault.balance -= gang.turf.cost;
-    return ok(gang);
-  },
-  'gang:pickHq': () => ({ ok: false, error: 'You can move HQ again once the wait is over.' }),
-  'gang:upgrade': () => fail('The vault needs to cover the price first.'),
 
   'admin:members': ({ name }) => structuredClone(adminMembers[name] ?? []),
-  'admin:create': ({ label, archetype, homeTurf, blipColor }) => {
+  'admin:create': ({ label }) => {
     const name = label.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-    admin.gangs.push({ name, label, archetype, homeTurf: homeTurf || null, blipColor, members: 0, founderName: null, foundedAt: new Date().toISOString() });
+    admin.gangs.push({ name, label, ranks: structuredClone(gangRanks), members: 0, founderName: null, foundedAt: new Date().toISOString() });
     return ok(admin);
   },
-  'admin:save': ({ name, label, archetype, homeTurf, blipColor }) => {
+  'admin:save': ({ name, label }) => {
     const target = admin.gangs.find((entry) => entry.name === name);
     if (!target) return fail('That gang no longer exists.');
 
-    Object.assign(target, { label, archetype, homeTurf: homeTurf || null, blipColor });
+    target.label = label;
     return ok(admin);
   },
   'admin:delete': ({ name }) => {
@@ -743,11 +683,13 @@ export const handlers: MockHandlers = {
     const list = (adminMembers[name] ??= []);
     const existing = list.find((member) => member.citizenid === citizenid);
     const player = admin.onlinePlayers.find((entry) => entry.citizenid === citizenid);
-
-    if (existing) existing.grade = grade;
-    else list.push({ citizenid, name: player?.name ?? citizenid, grade, online: true });
-
     const target = admin.gangs.find((entry) => entry.name === name);
+    const rank = target?.ranks.find((entry) => entry.grade === grade);
+    const placed = { grade, rank: rank?.name ?? '', isBoss: rank?.isBoss === true };
+
+    if (existing) Object.assign(existing, placed);
+    else list.push({ citizenid, name: player?.name ?? citizenid, ...placed, online: true, joinedAt: new Date().toISOString() });
+
     if (target) target.members = list.length;
     return ok(admin);
   },

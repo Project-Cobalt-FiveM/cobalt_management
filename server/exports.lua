@@ -1,11 +1,14 @@
 local config <const> = require 'config.server'
-local db <const> = require 'server.db'
-local Orgs <const> = require 'server.orgs'
+local db <const> = require 'server.jobs.db'
+local Jobs <const> = require 'server.jobs.registry'
+local Duty <const> = require 'server.jobs.duty'
+local Staff <const> = require 'server.jobs.staff'
 local Members <const> = require 'server.members'
-local Staff <const> = require 'server.staff'
-local Archetypes <const> = require 'server.gangs.archetypes'
+local Ranks <const> = require 'server.gangs.ranks'
 local GangStore <const> = require 'server.gangs.store'
 local Gangs <const> = require 'server.gangs.service'
+
+local core <const> = exports.cobalt_core
 
 ---@param source integer
 ---@return table?
@@ -20,13 +23,17 @@ local function gangWithPermissions(source)
     for key, value in pairs(gang) do out[key] = value end
 
     if record then
-        out.archetype = record.archetype
-        out.permissions = Archetypes.permissions(record.archetype, gang.grade.level, record.permissions)
-        out.homeTurf = record.homeTurf
+        out.permissions = Ranks.permissions(record, gang.grade.level)
         out.founderCid = record.founderCid
     end
 
     return out
+end
+
+---@param name unknown
+---@return boolean
+local function isName(name)
+    return type(name) == 'string' and #name > 0 and #name <= 50
 end
 
 exports('GetJob', Members.job)
@@ -47,13 +54,15 @@ end)
 exports('GetAffiliations', function(citizenids)
     local out <const> = {}
 
-    if type(citizenids) ~= 'table' then return out end
+    if type(citizenids) ~= 'table' or #citizenids == 0 then return out end
 
-    for _, row in ipairs(db.membershipsOf(citizenids)) do
-        local source <const> = Members.sourceOf(row.citizenid)
-        local live <const> = source and Members.entry(source)
+    local jobs <const> = core:GetMetaData(citizenids, 'job')
+    local gangs <const> = core:GetMetaData(citizenids, 'gang')
 
-        out[row.citizenid] = { job = live?.job or row.job, gang = live?.gang or row.gang }
+    for _, citizenid in ipairs(citizenids) do
+        local job <const>, gang <const> = jobs[citizenid], gangs[citizenid]
+
+        if job or gang then out[citizenid] = { job = job, gang = gang } end
     end
 
     return out
@@ -85,36 +94,73 @@ exports('SetDuty', function(source, onDuty)
     return Members.setDuty(source, onDuty == true)
 end)
 
-exports('HasPermission', Staff.hasPermission)
+exports('HasPermission', function(source, name, permission)
+    local entry <const> = Members.entry(source)
 
-exports('GetEmployees', function(orgName, options)
-    return Staff.roster(orgName, { summary = type(options) == 'table' and options.summary == true })
+    if not entry then return false end
+
+    if entry.job.name == name then
+        return Jobs.rankPermissions(name, entry.job.grade.level)[permission] == true
+    end
+
+    return entry.gang.name == name and Ranks.rank(name, entry.gang.grade.level)?.isBoss == true
+end)
+
+exports('GetEmployees', function(name, options)
+    if Jobs.get(name) then
+        return Staff.roster(name, { summary = type(options) == 'table' and options.summary == true })
+    end
+
+    if not GangStore.get(name) then return {} end
+
+    local out <const> = {}
+
+    for index, member in ipairs(Gangs.roster(name)) do
+        out[index] = {
+            citizenid = member.citizenid,
+            name = member.name,
+            grade = member.grade,
+            rank = member.rank,
+            pay = 0,
+            isBoss = member.isBoss,
+            online = member.online,
+            onDuty = member.online,
+            onLeave = false,
+            joinedAt = member.joinedAt,
+            weekMinutes = 0,
+            lastWeekMinutes = 0,
+            monthBonuses = 0,
+            source = member.source,
+        }
+    end
+
+    return out
 end)
 
 exports('GetOnlineMembers', Members.sourcesIn)
 
-exports('SetGrade', function(citizenid, orgName, grade)
-    return Staff.setGrade(orgName, citizenid, math.tointeger(tonumber(grade)) or 0)
+exports('SetGrade', function(citizenid, jobName, grade)
+    return Staff.setGrade(jobName, citizenid, math.tointeger(tonumber(grade)) or 0)
 end)
 
 exports('GetDutyMinutes', function(citizenid, jobName, days)
     local period <const> = math.tointeger(tonumber(days)) or config.dutyPeriodDays
 
-    if type(citizenid) == 'table' then return db.dutyMinutes(citizenid, jobName, period) end
+    if type(citizenid) == 'table' then return Duty.minutes(citizenid, jobName, period) end
 
-    return db.dutyMinutes({ citizenid }, jobName, period)[citizenid] or 0
+    return Duty.minutes({ citizenid }, jobName, period)[citizenid] or 0
 end)
 
 exports('HasGangPermission', Gangs.hasPermission)
 
-exports('GetFleet', function(orgName)
+exports('GetFleet', function(jobName)
     local grades <const> = {}
 
-    for _, vehicle in ipairs(Orgs.vehicles(orgName)?.catalogue or {}) do grades[vehicle.model] = vehicle.grade end
+    for _, vehicle in ipairs(Jobs.vehicles(jobName)?.catalogue or {}) do grades[vehicle.model] = vehicle.grade end
 
     local out <const> = {}
 
-    for _, vehicle in ipairs(db.fleet(orgName)) do
+    for _, vehicle in ipairs(db.fleet(jobName)) do
         out[#out + 1] = {
             plate = vehicle.plate,
             model = vehicle.model,
@@ -127,5 +173,33 @@ exports('GetFleet', function(orgName)
 end)
 
 exports('OpenMenu', function(source, mode, data)
-    TriggerClientEvent('cobalt_management:open', source, mode or 'org', data)
+    TriggerClientEvent('cobalt_management:open', source, mode or 'job', data)
+end)
+
+exports('GetJobStatus', function(names)
+    local wanted <const> = {}
+
+    for _, name in ipairs(type(names) == 'table' and names or {}) do
+        if isName(name) then wanted[#wanted + 1] = name end
+    end
+
+    return db.status(wanted)
+end)
+
+exports('SetJobOpen', function(name, open)
+    if not isName(name) or type(open) ~= 'boolean' then return false end
+
+    db.setOpen(name, open)
+
+    return true
+end)
+
+exports('AddJobPayout', function(name, amount)
+    local paid <const> = math.tointeger(tonumber(amount))
+
+    if not isName(name) or not paid or paid <= 0 then return false end
+
+    db.addPayout(name, paid)
+
+    return true
 end)

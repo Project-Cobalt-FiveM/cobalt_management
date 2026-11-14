@@ -1,22 +1,63 @@
-local db <const> = require 'server.db'
-local Orgs <const> = require 'server.orgs'
+local Jobs <const> = require 'server.jobs.registry'
+local Duty <const> = require 'server.jobs.duty'
 local Util <const> = require 'server.util'
 
-local Cobalt <const> = exports.cobalt_core:GetCoreObject()
+local core <const> = exports.cobalt_core
+local Cobalt <const> = core:GetCoreObject()
+
+---@alias MembershipField 'job' | 'gang'
 
 ---@class Membership
 ---@field citizenid string
 ---@field job ManagementJob
 ---@field gang ManagementGang
----@field jobSince? string
----@field gangSince? string
 
----@alias GangLeftHandler fun(source: integer?, citizenid: string, gang: ManagementGang)
+---@class MemberRow
+---@field citizenid string
+---@field name? string
+---@field membership ManagementJob | ManagementGang
+
+---@class SecondJob
+---@field grade integer
+---@field since integer unix seconds
+
+---@class Applicant
+---@field phone? string
+---@field job? string the name of their main job
+
+---@alias GangLeftHandler fun(gang: ManagementGang)
 
 local Members <const> = {}
 
 Members.UNEMPLOYED = 'unemployed'
 Members.NO_GANG = 'none'
+
+---@type table<MembershipField, string>
+local ROSTER <const> = {
+    job = [[
+        SELECT citizenid, fullname AS name, JSON_EXTRACT(metadata, '$.job') AS membership
+        FROM players WHERE job_name = ? ORDER BY id LIMIT 500
+    ]],
+    gang = [[
+        SELECT citizenid, fullname AS name, JSON_EXTRACT(metadata, '$.gang') AS membership
+        FROM players WHERE gang_name = ? ORDER BY id LIMIT 500
+    ]],
+}
+
+local GANG_COUNTS <const> = [[
+    SELECT gang_name AS name, COUNT(*) AS members FROM players
+    WHERE gang_name IN (?) GROUP BY gang_name
+]]
+
+local SECOND_JOB_HOLDERS <const> = [[
+    SELECT citizenid, fullname AS name,
+        CAST(JSON_VALUE(metadata, CONCAT(?, '.grade')) AS SIGNED) AS grade,
+        CAST(JSON_VALUE(metadata, CONCAT(?, '.since')) AS UNSIGNED) AS since
+    FROM players
+    WHERE JSON_CONTAINS_PATH(metadata, 'one', ?)
+    ORDER BY since
+    LIMIT 500
+]]
 
 ---@type table<integer, Membership>
 local bySource <const> = {}
@@ -31,7 +72,7 @@ local gangLeftHandlers <const> = {}
 ---@param level integer
 ---@return ManagementJob?
 function Members.jobShape(name, level)
-    local definition <const> = Orgs.sharedJob(name)
+    local definition <const> = Jobs.shared(name)
 
     if not definition then return end
 
@@ -39,7 +80,7 @@ function Members.jobShape(name, level)
 
     if not grade then return end
 
-    local paid <const> = Orgs.grade(name, level)
+    local paid <const> = Jobs.grade(name, level)
 
     return {
         name = name,
@@ -58,10 +99,9 @@ end
 
 ---@param name string
 ---@param level integer
----@param definition? table the gang definition to shape from, defaulting to core's
 ---@return ManagementGang?
-function Members.gangShape(name, level, definition)
-    definition = definition or Orgs.sharedGang(name)
+function Members.gangShape(name, level)
+    local definition <const> = core:GetShared('Gangs', name)
 
     if not definition then return end
 
@@ -128,16 +168,21 @@ end
 local function currentJob(stored)
     local job <const> = stored and Members.jobShape(stored.name, math.tointeger(stored.grade?.level) or 0)
 
-    if not job then return unemployed() end
+    if not job then
+        local fresh <const> = unemployed()
 
-    local definition <const> = Orgs.sharedJob(job.name)
-    local forceDuty <const> = Cobalt.Shared.ForceJobDefaultDutyAtLogin
+        fresh.since = os.time()
 
-    if forceDuty and definition and definition.defaultDuty ~= nil then
-        job.onduty = definition.defaultDuty
-    else
+        return fresh
+    end
+
+    local defaultDuty <const> = Jobs.shared(job.name)?.defaultDuty
+
+    if not Cobalt.Shared.ForceJobDefaultDutyAtLogin or defaultDuty == nil then
         job.onduty = stored.onduty == true
     end
+
+    job.since = math.tointeger(stored.since) or os.time()
 
     return job
 end
@@ -145,37 +190,33 @@ end
 ---@param stored? table
 ---@return ManagementGang
 local function currentGang(stored)
-    return stored and Members.gangShape(stored.name, math.tointeger(stored.grade?.level) or 0) or Members.noGang()
-end
+    local gang <const> = stored and Members.gangShape(stored.name, math.tointeger(stored.grade?.level) or 0)
 
----@param citizenid string
----@param job ManagementJob
-local function clockInIfOnDuty(citizenid, job)
-    if job.onduty and Orgs.get(job.name) and Orgs.feature(job.name, 'duty') then db.clockIn(citizenid, job.name) end
+    if not gang then return Members.noGang() end
+
+    if gang.name ~= Members.NO_GANG then gang.since = math.tointeger(stored.since) or os.time() end
+
+    return gang
 end
 
 ---@param source integer
 ---@return Membership?
 function Members.load(source)
-    local player <const> = Cobalt.Functions.GetPlayer(source)
-    local citizenid <const> = player?.PlayerData?.citizenid
+    local data <const> = Cobalt.Functions.GetPlayer(source)?.PlayerData
+    local citizenid <const> = data?.citizenid
 
-    if not player or not citizenid then return end
+    if not citizenid then return end
 
-    local row <const> = db.member(citizenid)
-    local job <const> = currentJob(row?.job)
-    local gang <const> = currentGang(row?.gang)
-
-    if differs(job, row?.job) or differs(gang, row?.gang) then db.saveMember(citizenid, job, gang) end
-
-    clockInIfOnDuty(citizenid, job)
-
-    local entry <const> = { citizenid = citizenid, job = job, gang = gang, jobSince = row?.jobSince, gangSince = row?.gangSince }
+    local stored <const> = data.metadata or {}
+    local entry <const> = { citizenid = citizenid, job = currentJob(stored.job), gang = currentGang(stored.gang) }
 
     bySource[source] = entry
     sourceByCitizen[citizenid] = source
 
-    player.Functions.SetPlayerData({ job = job, gang = gang })
+    if differs(entry.job, stored.job) then core:SetMetaData(citizenid, 'job', entry.job) end
+    if differs(entry.gang, stored.gang) then core:SetMetaData(citizenid, 'gang', entry.gang) end
+    if entry.job.onduty then Duty.clockIn(citizenid, entry.job.name) end
+
     announce(source, entry)
 
     return entry
@@ -187,9 +228,9 @@ function Members.unload(source)
 
     if not entry then return end
 
-    db.clockOut(entry.citizenid)
     sourceByCitizen[entry.citizenid] = nil
     bySource[source] = nil
+    Duty.clockOut(entry.citizenid)
 end
 
 ---@param source integer
@@ -229,13 +270,13 @@ end
 ---@param source integer
 ---@return string
 function Members.name(source)
-    return exports.cobalt_core:GetName(source) or locale('member.unknown')
+    return core:GetName(source) or locale('member.unknown')
 end
 
 ---@param citizenid string
 ---@return string
 function Members.nameOf(citizenid)
-    return exports.cobalt_core:GetName(citizenid) or citizenid
+    return core:GetName(citizenid) or citizenid
 end
 
 ---@return table<integer, Membership>
@@ -243,69 +284,153 @@ function Members.online()
     return bySource
 end
 
----@param orgName string
+---@param name string a job or gang
 ---@return integer[]
-function Members.sourcesIn(orgName)
+function Members.sourcesIn(name)
     local out <const> = {}
 
     for source, entry in pairs(bySource) do
-        if entry.job.name == orgName or entry.gang.name == orgName then out[#out + 1] = source end
+        if entry.job.name == name or entry.gang.name == name then out[#out + 1] = source end
     end
 
     return out
 end
 
+---@param citizenid string
+---@param field MembershipField
+---@return table? membership from memory while the character is online, else from `players.metadata`
+function Members.stored(citizenid, field)
+    local source <const> = sourceByCitizen[citizenid]
+
+    if source then return bySource[source][field] end
+
+    return core:GetMetaData({ citizenid }, field)[citizenid]
+end
+
+---@param field MembershipField
+---@param name string
+---@return MemberRow[] rows everyone holding it, online or not, with the live membership of those online
+function Members.roster(field, name)
+    local rows <const> = MySQL.query.await(ROSTER[field], { name }) or {}
+
+    for _, row in ipairs(rows) do
+        local source <const> = sourceByCitizen[row.citizenid]
+
+        row.membership = source and bySource[source][field] or Util.decode(row.membership)
+    end
+
+    return rows
+end
+
+---@param names string[]
+---@return table<string, integer> members by gang name
+function Members.gangCounts(names)
+    local counts <const> = {}
+
+    if #names == 0 then return counts end
+
+    for _, row in ipairs(MySQL.query.await(GANG_COUNTS, { names }) or {}) do counts[row.name] = row.members end
+
+    return counts
+end
+
+---@param citizenids string[]
+---@return table<string, Applicant> by citizenid
+function Members.applicants(citizenids)
+    local out <const> = {}
+
+    if #citizenids == 0 then return out end
+
+    local rows <const> = MySQL.query.await(
+        'SELECT citizenid, phone_number AS phone, job_name AS job FROM players WHERE citizenid IN (?)',
+        { citizenids }
+    ) or {}
+
+    for _, row in ipairs(rows) do out[row.citizenid] = { phone = row.phone, job = row.job } end
+
+    return out
+end
+
+---@param citizenid string
+---@return table<string, SecondJob> by job name
+function Members.secondJobs(citizenid)
+    local jobs <const> = core:GetMetaData({ citizenid }, 'secondjobs')[citizenid]
+
+    return type(jobs) == 'table' and jobs or {}
+end
+
+---@param citizenid string
+---@param jobs table<string, SecondJob>
+---@return boolean written
+function Members.saveSecondJobs(citizenid, jobs)
+    return core:SetMetaData(citizenid, 'secondjobs', jobs)
+end
+
+---@param jobName string
+---@return { citizenid: string, name?: string, grade: integer, since?: integer }[]
+function Members.secondJobHolders(jobName)
+    local path <const> = Util.jsonPath('secondjobs', jobName)
+
+    return MySQL.query.await(SECOND_JOB_HOLDERS, { path, path, path }) or {}
+end
+
+---@param citizenid string
+---@param mainJob string no longer held as a second job
+---@param demoted? { name: string, grade: integer } the main job they leave, kept as a second job
+local function keepSecondJobs(citizenid, mainJob, demoted)
+    local jobs <const> = Members.secondJobs(citizenid)
+
+    if not jobs[mainJob] and not demoted then return end
+
+    jobs[mainJob] = nil
+
+    if demoted then jobs[demoted.name] = { grade = demoted.grade, since = os.time() } end
+
+    Members.saveSecondJobs(citizenid, jobs)
+end
+
 ---@param source integer
 ---@param job ManagementJob
----@param joined boolean
 ---@param demoted? { name: string, grade: integer }
-local function writeJob(source, job, joined, demoted)
+local function writeJob(source, job, demoted)
     local entry <const> = bySource[source]
-    local player <const> = Cobalt.Functions.GetPlayer(source)
-
-    if entry.job.name ~= job.name then db.clockOut(entry.citizenid, entry.job.name) end
+    local changed <const> = entry.job.name ~= job.name
 
     entry.job = job
 
-    if joined then entry.jobSince = Util.iso(os.time()) end
+    if changed then Duty.clockOut(entry.citizenid) end
 
-    db.saveMembership(entry.citizenid, 'job', job, joined, demoted)
-    clockInIfOnDuty(entry.citizenid, job)
+    core:SetMetaData(entry.citizenid, 'job', job)
 
-    player?.Functions.SetPlayerData('job', job)
+    if changed or demoted then keepSecondJobs(entry.citizenid, job.name, demoted) end
+    if job.onduty then Duty.clockIn(entry.citizenid, job.name) end
+
     TriggerClientEvent('cobalt_core:Client:OnJobUpdate', source, job)
     announce(source, entry)
 end
 
----@param citizenid string
 ---@param gang ManagementGang
----@param source? integer
-local function gangLeft(citizenid, gang, source)
-    for _, handler in ipairs(gangLeftHandlers) do handler(source, citizenid, gang) end
+local function gangLeft(gang)
+    if gang.name == Members.NO_GANG then return end
+
+    for _, handler in ipairs(gangLeftHandlers) do handler(gang) end
 end
 
 ---@param source integer
 ---@param gang ManagementGang
----@param joined boolean
----@param saved? boolean true when the caller already wrote the gang to the database
-local function writeGang(source, gang, joined, saved)
+---@return ManagementGang previous
+local function writeGang(source, gang)
     local entry <const> = bySource[source]
     local previous <const> = entry.gang
-    local player <const> = Cobalt.Functions.GetPlayer(source)
 
     entry.gang = gang
+    core:SetMetaData(entry.citizenid, 'gang', gang)
 
-    if joined then entry.gangSince = Util.iso(os.time()) end
-    if not saved then db.saveMembership(entry.citizenid, 'gang', gang, joined) end
-
-    player?.Functions.SetPlayerData('gang', gang)
     TriggerEvent('cobalt_core:Server:OnGangUpdate', source, gang)
     TriggerClientEvent('cobalt_core:Client:OnGangUpdate', source, gang)
     announce(source, entry)
 
-    if previous.name ~= Members.NO_GANG and previous.name ~= gang.name then
-        gangLeft(entry.citizenid, previous, source)
-    end
+    return previous
 end
 
 ---@param handler GangLeftHandler
@@ -319,17 +444,19 @@ end
 ---@param demoted? { name: string, grade: integer } the current main job to keep as a second job
 ---@return boolean
 function Members.setJob(source, name, grade, demoted)
-    if not bySource[source] then return false end
-
-    local job <const> = Members.jobShape(name, grade)
+    local entry <const> = bySource[source]
+    local job <const> = entry and Members.jobShape(name, grade)
 
     if not job then return false end
 
-    local current <const> = bySource[source].job
+    if entry.job.name == name then
+        job.onduty = entry.job.onduty
+        job.since = entry.job.since
+    else
+        job.since = os.time()
+    end
 
-    if current.name == name then job.onduty = current.onduty end
-
-    writeJob(source, job, current.name ~= name, demoted)
+    writeJob(source, job, demoted)
 
     return true
 end
@@ -339,13 +466,20 @@ end
 ---@param grade integer
 ---@return boolean
 function Members.setGang(source, name, grade)
-    if not bySource[source] then return false end
-
-    local gang <const> = Members.gangShape(name, grade)
+    local entry <const> = bySource[source]
+    local gang <const> = entry and Members.gangShape(name, grade)
 
     if not gang then return false end
 
-    writeGang(source, gang, bySource[source].gang.name ~= name)
+    if name == entry.gang.name then
+        gang.since = entry.gang.since
+    elseif name ~= Members.NO_GANG then
+        gang.since = os.time()
+    end
+
+    local previous <const> = writeGang(source, gang)
+
+    if previous.name ~= name then gangLeft(previous) end
 
     return true
 end
@@ -361,14 +495,15 @@ function Members.assignJob(citizenid, name, grade)
 
     local job <const> = Members.jobShape(name, grade)
 
-    if not job or not exports.cobalt_core:GetName(citizenid) then return false end
+    if not job then return false end
 
-    local row <const> = db.member(citizenid)
-    local joined <const> = row?.job?.name ~= name
+    local previous <const> = Members.stored(citizenid, 'job')
+    local joined <const> = previous?.name ~= name
 
-    if not joined then job.onduty = row.job.onduty end
+    job.since = not joined and math.tointeger(previous.since) or os.time()
 
-    db.saveMembership(citizenid, 'job', job, joined)
+    if not core:SetMetaData(citizenid, 'job', job) then return false end
+    if joined then keepSecondJobs(citizenid, name) end
 
     return true
 end
@@ -384,23 +519,17 @@ function Members.assignGang(citizenid, name, grade)
 
     local gang <const> = Members.gangShape(name, grade)
 
-    if not gang or not exports.cobalt_core:GetName(citizenid) then return false end
+    if not gang then return false end
 
-    local previous <const> = db.member(citizenid)?.gang
+    local previous <const> = Members.stored(citizenid, 'gang')
+    local joined <const> = previous?.name ~= name
 
-    db.saveMembership(citizenid, 'gang', gang, previous?.name ~= name)
+    if name ~= Members.NO_GANG then gang.since = not joined and math.tointeger(previous.since) or os.time() end
 
-    if previous and previous.name ~= Members.NO_GANG and previous.name ~= name then gangLeft(citizenid, previous) end
+    if not core:SetMetaData(citizenid, 'gang', gang) then return false end
+    if previous and joined then gangLeft(previous) end
 
     return true
-end
-
----@param citizenid string
----@param gang ManagementGang
-function Members.syncSavedGang(citizenid, gang)
-    local source <const> = sourceByCitizen[citizenid]
-
-    if source then writeGang(source, gang, false, true) end
 end
 
 ---@param citizenid string
@@ -415,12 +544,16 @@ function Members.clearGang(citizenid)
     return Members.assignGang(citizenid, Members.NO_GANG, 0)
 end
 
----@param gangName string
+---@param gangName string a gang being dissolved; the gang-left handlers don't run
 function Members.clearWholeGang(gangName)
-    db.resetGang(gangName, Members.noGang())
+    for _, row in ipairs(Members.roster('gang', gangName)) do
+        local source <const> = sourceByCitizen[row.citizenid]
 
-    for _, source in ipairs(Members.sourcesIn(gangName)) do
-        if bySource[source].gang.name == gangName then writeGang(source, Members.noGang(), false, true) end
+        if source then
+            writeGang(source, Members.noGang())
+        else
+            core:SetMetaData(row.citizenid, 'gang', Members.noGang())
+        end
     end
 end
 
@@ -431,19 +564,17 @@ function Members.setDuty(source, onDuty)
     local entry <const> = bySource[source]
 
     if not entry then return false end
-
     if entry.job.onduty == onDuty then return true end
 
     entry.job.onduty = onDuty
-    db.saveMembership(entry.citizenid, 'job', entry.job, false)
+    Cobalt.Functions.GetPlayer(source)?.Functions.SetMetaData('job', entry.job)
 
-    if not onDuty then
-        db.clockOut(entry.citizenid, entry.job.name)
-    elseif Orgs.get(entry.job.name) and Orgs.feature(entry.job.name, 'duty') then
-        db.clockIn(entry.citizenid, entry.job.name)
+    if onDuty then
+        Duty.clockIn(entry.citizenid, entry.job.name)
+    else
+        Duty.clockOut(entry.citizenid)
     end
 
-    Cobalt.Functions.GetPlayer(source)?.Functions.SetPlayerData('job', entry.job)
     TriggerClientEvent('cobalt_core:Client:OnJobUpdate', source, entry.job)
     TriggerEvent('cobalt_management:dutyChanged', source, onDuty)
     TriggerClientEvent('cobalt_management:dutyChanged', source, onDuty)
@@ -452,16 +583,17 @@ function Members.setDuty(source, onDuty)
     return true
 end
 
----@param orgName string
+---@param jobName string
 ---@param grade integer
-function Members.refreshPay(orgName, grade)
+function Members.refreshPay(jobName, grade)
     for source, entry in pairs(bySource) do
-        if entry.job.name == orgName and entry.job.grade.level == grade then
-            local job <const> = Members.jobShape(orgName, grade)
+        if entry.job.name == jobName and entry.job.grade.level == grade then
+            local job <const> = Members.jobShape(jobName, grade)
 
             if job and job.grade.payment ~= entry.job.grade.payment then
                 job.onduty = entry.job.onduty
-                writeJob(source, job, false)
+                job.since = entry.job.since
+                writeJob(source, job)
             end
         end
     end
@@ -473,7 +605,10 @@ function Members.refreshGang(gangName)
         if entry.gang.name == gangName then
             local gang <const> = Members.gangShape(gangName, entry.gang.grade.level)
 
-            if gang then writeGang(source, gang, false) end
+            if gang then
+                gang.since = entry.gang.since
+                writeGang(source, gang)
+            end
         end
     end
 end

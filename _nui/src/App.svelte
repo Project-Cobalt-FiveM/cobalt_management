@@ -3,18 +3,18 @@
   import IconContext from 'phosphor-svelte/lib/IconContext';
   import { inGame, mockOpen, onMessage } from './lib/nui';
   import { app, type GangPage } from './lib/store.svelte';
-  import type { OrgPage } from './lib/types';
-  import OrgApp from './org/OrgApp.svelte';
+  import type { JobPage } from './lib/types';
+  import JobApp from './job/JobApp.svelte';
   import GangApp from './gang/GangApp.svelte';
   import AdminApp from './admin/AdminApp.svelte';
   import ApplyDialog from './apply/ApplyDialog.svelte';
   import CharterDialog from './charter/CharterDialog.svelte';
 
-  const orgPages: ReadonlySet<string> = new Set<OrgPage>(['overview', 'employees', 'requests', 'society', 'vehicles', 'announcements', 'ranks', 'settings', 'myJob', 'myJobs']);
-  const gangPages: ReadonlySet<string> = new Set<GangPage>(['roster', 'permissions', 'vault', 'archetype']);
+  const jobPages: ReadonlySet<string> = new Set<JobPage>(['overview', 'employees', 'requests', 'society', 'vehicles', 'announcements', 'ranks', 'settings', 'myJob', 'myJobs']);
+  const gangPages: ReadonlySet<string> = new Set<GangPage>(['roster', 'permissions', 'vault']);
 
-  function isOrgPage(value: string): value is OrgPage {
-    return orgPages.has(value);
+  function isJobPage(value: string): value is JobPage {
+    return jobPages.has(value);
   }
 
   function isGangPage(value: string): value is GangPage {
@@ -35,7 +35,7 @@
       if (!mock) return;
 
       app.handle(mock.message);
-      if (mock.page && isOrgPage(mock.page)) app.goOrg(mock.page);
+      if (mock.page && isJobPage(mock.page)) app.goJob(mock.page);
       if (mock.page && isGangPage(mock.page)) app.goGang(mock.page);
     });
 
@@ -49,8 +49,8 @@
 
 <IconContext values={{ weight: 'fill' }}>
   {#if app.visible && app.session}
-    {#if app.session.mode === 'org'}
-      <OrgApp session={app.session} />
+    {#if app.session.mode === 'job'}
+      <JobApp session={app.session} />
     {:else if app.session.mode === 'gang'}
       <GangApp session={app.session} />
     {:else if app.session.mode === 'gangAdmin'}
