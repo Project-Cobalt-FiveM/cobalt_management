@@ -1,0 +1,968 @@
+{
+  "notify": {
+    "title": "Management"
+  },
+  "menu": {
+    "keybind": "Open the management menu",
+    "unavailable": "That menu isn't available",
+    "no_answer": "No answer from the server",
+    "no_job": "You don't have a job with a management menu",
+    "unknown": "That menu doesn't exist"
+  },
+  "apply": {
+    "no_openings": "No one is hiring right now",
+    "menu_title": "Apply for a job",
+    "pick_job": "Pick a job to apply to",
+    "not_taken": "That job doesn't take applications",
+    "closed": "%s isn't taking applications",
+    "need_message": "Write a few lines about why you want the job"
+  },
+  "common": {
+    "already_staff": "You already work here",
+    "enter_amount": "Enter an amount",
+    "failed": "That didn't work",
+    "pick_member": "Pick a member",
+    "pick_rank": "Pick a rank",
+    "title_and_message": "Add a title and a message"
+  },
+  "org": {
+    "rank_cannot": "Your rank can't do that",
+    "duty_off": "Duty tracking is off for this job",
+    "pick_person_rank": "Pick a person and a rank",
+    "hire_too_far": "They have to be standing with you to be hired",
+    "pick_fire": "Pick someone to fire",
+    "bonus_range": "Bonuses go from $1 to %s",
+    "pick_request": "Pick a request",
+    "pay_whole": "Enter the pay as a whole number",
+    "announcement": "%s: %s",
+    "logo_host": "Use an image link from %s",
+    "logos_off": "Job logos are turned off on this server",
+    "unknown_feature": "That section doesn't exist",
+    "pick_job": "Pick a job",
+    "not_staff": "You're not on staff here anymore",
+    "no_longer_staff": "You no longer work here",
+    "grade_fallback": "Grade %d"
+  },
+  "org_type": {
+    "leo": "Law enforcement",
+    "ems": "Emergency medical",
+    "mechanic": "Mechanic shop",
+    "gang": "Gang",
+    "business": "Business"
+  },
+  "member": {
+    "unknown": "Unknown",
+    "civilian": "Civilian",
+    "freelancer": "Freelancer",
+    "no_gang": "No Gang Affiliation",
+    "unaffiliated": "Unaffiliated",
+    "no_grade": "No grade"
+  },
+  "staff": {
+    "own_job": "You can't change your own job here",
+    "outranked": "They hold your rank or above",
+    "no_job": "That job doesn't exist",
+    "no_rank": "That rank doesn't exist",
+    "no_citizen": "No one has that citizen ID",
+    "job_change_failed": "The job change failed",
+    "not_employee": "They don't work here",
+    "rank_change_failed": "The rank change failed",
+    "hire_below": "You can only hire below your own rank",
+    "already_employee": "They already work here",
+    "second_jobs_off": "Second jobs are off for this job",
+    "second_jobs_full": "They already have the most second jobs",
+    "hired_you": "%s hired you at %s as %s",
+    "fired_you": "You were let go from %s",
+    "fired_you_reason": "You were let go from %s: %s",
+    "promote_below": "You can only promote below your own rank",
+    "promoted_you": "You were promoted to %s",
+    "moved_you": "You were moved to %s",
+    "bonus_self": "You can't give yourself a bonus",
+    "bonus_lower": "You can only give bonuses to lower ranks",
+    "bonus_you": "%s gave you a %s bonus",
+    "bonus_you_reason": "%s gave you a %s bonus: %s"
+  },
+  "offer": {
+    "title": "Job offer",
+    "body": "%s offers you a job at %s as %s.",
+    "body_second": "%s offers you a second job at %s as %s. You keep your main job.",
+    "body_replace": "%s offers you a job at %s as %s. You leave your job at %s.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "pending": "They're answering another job offer",
+    "accepted": "%s accepted the job",
+    "declined": "%s turned down the job",
+    "expired": "That job offer is no longer open",
+    "failed": "The job offer fell through"
+  },
+  "jobs": {
+    "not_yours": "You don't have that job",
+    "second_jobs_off": "That job has second jobs turned off"
+  },
+  "society": {
+    "deposit": "Deposit",
+    "withdrawal": "Withdrawal",
+    "with_note": "%s, %s",
+    "bonus_to": "Bonus to %s",
+    "vehicle_bought": "Bought %s, plate %s",
+    "bank": "Bank",
+    "payroll": "Payroll",
+    "cannot_cover": "The society account can't cover it"
+  },
+  "vehicles": {
+    "everyone": "Everyone",
+    "not_for_sale": "That vehicle isn't for sale here",
+    "fleet_full": "The fleet is full or that plate was just taken",
+    "role": {
+      "patrol": "Patrol",
+      "pursuit": "Pursuit",
+      "transport": "Transport",
+      "command": "Command",
+      "emergency": "Emergency",
+      "service": "Service"
+    }
+  },
+  "requests": {
+    "failed": "That didn't go through, try again in a moment",
+    "answered": "That request was already answered",
+    "no_character": "That character no longer exists",
+    "application": {
+      "inbox_full": "This job's inbox is full, try again later",
+      "too_many_open": "You already have an application waiting",
+      "sent": "%s applied to %s",
+      "declined": "%s declined your application"
+    },
+    "leave": {
+      "inbox_full": "Your job's inbox is full, try again later",
+      "too_many_open": "Wait for an answer on your other leave requests first",
+      "off": "Leave requests are off for this job",
+      "pick_dates": "Pick both dates",
+      "end_before_start": "The end date is before the start date",
+      "past": "Leave can't start in the past",
+      "sent": "%s asked for leave from %s to %s",
+      "approved": "%s approved your leave request",
+      "declined": "%s declined your leave request"
+    },
+    "report": {
+      "inbox_full": "Your job's inbox is full, try again later",
+      "too_many_open": "Wait for an answer on your other reports first",
+      "off": "Staff reports are off for this job",
+      "sent": "%s sent a report: %s",
+      "approved": "%s marked your report as handled",
+      "declined": "%s dismissed your report"
+    }
+  },
+  "gang": {
+    "not_member": "You're not in a gang",
+    "no_longer_member": "You're not in a gang anymore",
+    "unknown_spot": "Unknown spot",
+    "hq_moved": "HQ moved",
+    "hq_target": "Open the gang menu",
+    "hq_prompt": "[LMB] Set the HQ here  [X] Cancel",
+    "invite_target": "Invite into your gang",
+    "invite_sent": "Invite sent",
+    "invite_failed": "The invite didn't go through",
+    "invite_title": "Gang invite",
+    "invite_body": "%s wants you in %s.",
+    "invite_join": "Join",
+    "invite_decline": "Decline",
+    "invite_pending": "They're answering another invite",
+    "handover": "You're now the %s of %s. The last one left.",
+    "cannot_invite": "Your rank can't invite",
+    "not_around": "They aren't around",
+    "target_in_gang": "They're in a gang. They have to leave it first.",
+    "get_closer": "Get closer to them",
+    "leave_first": "Leave your gang first",
+    "welcome": "Welcome to %s",
+    "joined": "%s joined",
+    "boss_kick": "Only the boss can kick",
+    "pass_first": "Pass leadership before you leave",
+    "boss_cant_leave": "Pass leadership or disband the gang first",
+    "left": "You left %s",
+    "change_pending": "Another change is going through. Try again in a moment.",
+    "not_in_your_gang": "They aren't in your gang",
+    "kicked": "You were kicked from %s",
+    "boss_pass": "Only the boss can pass leadership",
+    "pick_other": "Pick someone else",
+    "leader_now": "You're now the %s of %s",
+    "disbanded_by": "%s was disbanded by %s",
+    "disbanded_admin": "%s was disbanded by an admin",
+    "boss_permissions": "Only the boss can change permissions",
+    "nothing_to_save": "Nothing to save",
+    "cannot_withdraw": "Your rank can't withdraw",
+    "no_room": "Not enough room in your bag",
+    "vault_short_amount": "The vault doesn't hold that much",
+    "cannot_move_turf": "Your rank can't move the turf",
+    "pick_zone": "Pick a zone",
+    "same_turf": "That's already your turf",
+    "turf_cooldown": "You moved turf recently",
+    "vault_needs": "The vault needs %s",
+    "cannot_move_hq": "Your rank can't move the HQ",
+    "hq_cooldown": "You moved the HQ recently",
+    "pick_spot": "Pick a spot",
+    "spot_too_far": "That spot is too far away",
+    "boss_archetype": "Only the boss can change the archetype",
+    "pick_archetype": "Pick an archetype",
+    "already_archetype": "The gang already is one",
+    "too_young": "The gang needs to be %d days old",
+    "archetype_cooldown": "The archetype changed too recently",
+    "need_members": "You need %d members",
+    "vault_min": "The vault needs %s in it",
+    "vault_short": "The vault is %s short",
+    "debit_failed": "The vault debit failed",
+    "name_length": "Names are %d to %d letters",
+    "name_taken": "Another gang already uses that name",
+    "pick_nearby": "Pick someone nearby",
+    "boss_disband": "Only the boss can disband",
+    "permission": {
+      "tag_wall": "Tag walls",
+      "homeland_bonus": "Home turf payout bonus",
+      "formation_lead": "Lead bike formations",
+      "racket_claim": "Claim businesses",
+      "racket_launder": "Run laundering",
+      "racket_raid": "Lead raids on rivals",
+      "front_purchase": "Buy business fronts",
+      "lab_operate": "Operate the lab",
+      "tools_craft": "Craft criminal tools",
+      "vault_view": "See the vault",
+      "vault_withdraw": "Withdraw from the vault",
+      "vault_audit": "See vault history",
+      "turf_set": "Move home turf and HQ",
+      "gang_invite": "Invite players"
+    },
+    "permission_group": {
+      "streets": "Streets",
+      "business": "Business",
+      "vault": "Vault",
+      "leadership": "Leadership"
+    },
+    "archetype": {
+      "street": {
+        "label": "Street gang",
+        "summary": "Affiliate to Big Homie. Tag walls and earn the home turf bonus."
+      },
+      "mc": {
+        "label": "Motorcycle Club",
+        "summary": "Hangaround to President, 7 ranks. Leads bike formations and crafts tools."
+      },
+      "mafia": {
+        "label": "Mafia",
+        "summary": "Associate to Don. Buy business fronts, run rackets and laundering."
+      },
+      "cartel": {
+        "label": "Cartel",
+        "summary": "Halcón to Patrón. Operate the lab and craft criminal tools."
+      }
+    },
+    "colour": {
+      "0": "White",
+      "1": "Red",
+      "2": "Green",
+      "5": "Yellow",
+      "7": "Purple",
+      "11": "Cyan",
+      "25": "Pink",
+      "27": "Light blue",
+      "38": "Dark blue",
+      "47": "Orange"
+    }
+  },
+  "charter": {
+    "target": "Charter a gang",
+    "deposit_target": "Deposit marked bills",
+    "withdraw_target": "Withdraw marked bills",
+    "deposit_title": "Deposit to the gang vault",
+    "withdraw_title": "Withdraw from the gang vault",
+    "amount_label": "Marked bills",
+    "not_here": "You're not at the charterer",
+    "leave_first": "Leave your gang before you charter a new one",
+    "full": "Every gang slot in the city is taken",
+    "pick_turf_colour": "Pick a home turf and a map colour",
+    "need_bills": "You need %s in marked bills",
+    "failed": "The charter failed. Your money is back.",
+    "done": "%s is chartered. You're the %s.",
+    "not_carrying": "You don't carry %s in marked bills",
+    "vault_full": "The vault took %s. It's full, so %s came back.",
+    "deposited": "Deposited %s",
+    "withdrew": "Withdrew %s"
+  },
+  "vault": {
+    "withdrawal": "Withdrawal",
+    "refund": "Refund, failed withdrawal",
+    "turf_moved": "Moved home turf to %s",
+    "hq_moved": "Moved HQ to %s",
+    "archetype_changed": "Became a %s",
+    "charter_deposit": "Deposit at the charterer",
+    "charter_withdrawal": "Withdrawal at the charterer"
+  },
+  "admin": {
+    "only": "Admins only",
+    "rank_owner": "Owner",
+    "rank_admin": "Admin",
+    "pick_colour": "Pick a map colour",
+    "create_failed": "The gang couldn't be created",
+    "gang_gone": "That gang no longer exists",
+    "archetype_failed": "The archetype change failed",
+    "pick_player": "Pick a player",
+    "add_failed": "That player couldn't be added",
+    "put_you": "An admin put you in %s",
+    "not_in_gang": "They aren't in that gang",
+    "removed_you": "An admin removed you from %s"
+  },
+  "commands": {
+    "argument": {
+      "apply_job": "Job name, a list when left out"
+    },
+    "admingangs": {
+      "help": "Open the gang admin tool"
+    },
+    "gangmenu": {
+      "help": "Open your gang menu"
+    },
+    "apply": {
+      "help": "Apply for a job"
+    }
+  },
+  "ui": {
+    "common": {
+      "no_answer": "The menu did not answer. Try again.",
+      "list_and": "%s and %s",
+      "cancel": "Cancel",
+      "close": "Close",
+      "esc": "Esc",
+      "online": "Online",
+      "offline": "Offline",
+      "on_duty": "On duty",
+      "off_duty": "Off duty",
+      "on_leave": "On leave",
+      "in_the_city": "In the city",
+      "away": "Away",
+      "approved": "Approved",
+      "declined": "Declined",
+      "waiting": "Waiting",
+      "all": "All",
+      "rank": "Rank",
+      "pay": "Pay",
+      "status": "Status",
+      "joined": "Joined",
+      "member": "Member",
+      "employee": "Employee",
+      "this_week": "This week",
+      "amount": "Amount",
+      "home_turf": "Home turf",
+      "map_colour": "Map colour",
+      "pick_turf": "Pick a turf",
+      "pick_member": "Pick a member",
+      "pick_day": "Pick a day",
+      "per_payday": "%s per payday",
+      "rank_pay": "%s, %s",
+      "grade": "Grade %d",
+      "hours_this_week": "Hours this week",
+      "pay_per_payday": "Pay per payday",
+      "bonuses_this_month": "Bonuses this month",
+      "deposit": "Deposit",
+      "withdraw": "Withdraw",
+      "reason": "Reason",
+      "message": "Message",
+      "title": "Title",
+      "from": "From",
+      "until": "Until",
+      "unemployed": "Unemployed",
+      "works_at": "Works at %s",
+      "meters": "%d m",
+      "within_meters": "Within %d m",
+      "no_announcements": "No announcements yet.",
+      "nothing_waiting": "Nothing waiting on you",
+      "the_boss": "the boss",
+      "the_managers": "The managers",
+      "looking": "Looking around you",
+      "by_on": "%s, %s",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "date": {
+      "month_short": {
+        "jan": "Jan",
+        "feb": "Feb",
+        "mar": "Mar",
+        "apr": "Apr",
+        "may": "May",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Aug",
+        "sep": "Sep",
+        "oct": "Oct",
+        "nov": "Nov",
+        "dec": "Dec"
+      },
+      "month": {
+        "jan": "January",
+        "feb": "February",
+        "mar": "March",
+        "apr": "April",
+        "may": "May",
+        "jun": "June",
+        "jul": "July",
+        "aug": "August",
+        "sep": "September",
+        "oct": "October",
+        "nov": "November",
+        "dec": "December"
+      },
+      "weekday": {
+        "sunday": "Sunday",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday"
+      },
+      "day_month": "%d %s",
+      "long": "%d %s %d",
+      "month_year": "%s %d",
+      "weekday_date": "%s %d %s",
+      "today_at": "Today %s",
+      "yesterday": "Yesterday",
+      "range": "%s to %s"
+    },
+    "time": {
+      "hours_minutes": "%dh %sm",
+      "minutes_short": "%dm",
+      "days_hours": "%dd %dh",
+      "now": "now",
+      "just_now": "just now",
+      "yesterday": "yesterday",
+      "minutes_ago_short": "%dm ago",
+      "hours_ago_short": "%dh ago"
+    },
+    "plural": {
+      "minutes_ago": {
+        "one": "%d minute ago",
+        "other": "%d minutes ago"
+      },
+      "hours_ago": {
+        "one": "%d hour ago",
+        "other": "%d hours ago"
+      },
+      "day": {
+        "one": "%d day",
+        "other": "%d days"
+      },
+      "member": {
+        "one": "%d member",
+        "other": "%d members"
+      },
+      "unsaved_change": {
+        "one": "%d unsaved change",
+        "other": "%d unsaved changes"
+      },
+      "person": {
+        "one": "%d person",
+        "other": "%d people"
+      },
+      "vehicle": {
+        "one": "%d vehicle",
+        "other": "%d vehicles"
+      },
+      "rank": {
+        "one": "%d rank",
+        "other": "%d ranks"
+      },
+      "transaction": {
+        "one": "%d transaction",
+        "other": "%d transactions"
+      },
+      "turf_cooldown": {
+        "one": "Once an hour.",
+        "other": "Once every %d hours."
+      }
+    },
+    "page": {
+      "overview": "Overview",
+      "employees": "Employees",
+      "requests": "Requests",
+      "society": "Society funds",
+      "vehicles": "Vehicles",
+      "announcements": "Announcements",
+      "ranks": "Ranks and pay",
+      "settings": "Settings",
+      "myJob": "My job",
+      "myJobs": "My jobs"
+    },
+    "rank_permission": {
+      "open_menu": {
+        "title": "Open this menu",
+        "body": "Needed for everything below.",
+        "short": "Menu"
+      },
+      "view_dashboard": {
+        "title": "See the overview and employees",
+        "body": "Hiring, firing and rank changes still need a boss rank.",
+        "short": "staff"
+      },
+      "give_bonus": {
+        "title": "Give bonuses",
+        "body": "Only to lower ranks.",
+        "short": "bonuses"
+      },
+      "society": {
+        "title": "Deposit and withdraw funds",
+        "body": "Moves money in and out of the society account.",
+        "short": "funds"
+      }
+    },
+    "feature": {
+      "society": {
+        "title": "Society funds",
+        "body": "Balance, deposits, withdrawals and history"
+      },
+      "applications": {
+        "title": "Applications",
+        "body": "People outside the shop can apply to join"
+      },
+      "leaves": {
+        "title": "Leave requests",
+        "body": "Staff ask for days off from their own menu"
+      },
+      "reports": {
+        "title": "Staff reports",
+        "body": "Staff flag problems and feedback to you"
+      },
+      "vehicles": {
+        "title": "Vehicles",
+        "body": "Buy work vehicles with society funds"
+      },
+      "announcements": {
+        "title": "Announcements",
+        "body": "Posts everyone at the shop can read"
+      },
+      "duty": {
+        "title": "Duty hours",
+        "body": "Log every shift and show hours per week"
+      },
+      "secondJobs": {
+        "title": "Second jobs",
+        "body": "Staff can hold a job here and somewhere else"
+      }
+    },
+    "request": {
+      "wants_to_join": "%s wants to join",
+      "wants_time_off": "%s wants time off",
+      "leave_headline": "%s, %s",
+      "application_summary": "Application, %s",
+      "leave_summary": "Leave request",
+      "leave_summary_reason": "Leave request, %s",
+      "report_from": "Report from %s",
+      "application_preview": "Application. %s",
+      "leave_preview": "Leave, %s. %s",
+      "report_preview": "Report. %s",
+      "leave_title": "Leave, %s",
+      "hire_option": "%s, %s per payday",
+      "sent_today": "today at %s",
+      "sent_yesterday": "yesterday at %s",
+      "sent_on": "on %s",
+      "application_sent": "Application sent %s",
+      "citizen_id": "citizen ID %s",
+      "phone": "phone %s",
+      "leave_sent": "Leave request sent %s, citizen ID %s",
+      "report_sent": "Report from %s, sent %s",
+      "footnote_application": "Declined applications stay under Applications.",
+      "footnote_leave": "Approved leave shows on the roster as on leave.",
+      "footnote_report": "Handled reports stay under Reports.",
+      "decline": "Decline",
+      "hire_as": "Hire %s as %s",
+      "hire": "Hire %s",
+      "approve_leave": "Approve leave",
+      "dismiss": "Dismiss",
+      "mark_handled": "Mark as handled",
+      "reviewed_by": "%s by %s",
+      "reviewed_on": "%s, %s",
+      "what_happened": "What happened",
+      "no_message": "No message.",
+      "current_job": "Current job",
+      "worked_before": "Worked here before",
+      "online_now": "Online now",
+      "length": "Length",
+      "hire_as_label": "Hire as"
+    },
+    "org": {
+      "manager_menu": "Management",
+      "staff_menu": "Staff menu",
+      "needs_manager": "Needs a manager rank"
+    },
+    "duty": {
+      "on_for": "On duty, %s"
+    },
+    "employee": {
+      "promote_hint": "Promote to %s, %s per payday.",
+      "demote_hint": "Demote to %s, %s.",
+      "id_joined": "%s, joined %s",
+      "demote_to": "Demote to %s",
+      "demote": "Demote",
+      "promote_to": "Promote to %s",
+      "promote": "Promote",
+      "hours_last_week": "Hours last week",
+      "give_bonus": "Give a bonus",
+      "bonus_amount": "Bonus amount",
+      "reason_optional": "Reason, optional",
+      "bonus_reason": "Bonus reason",
+      "give_amount": "Give %s bonus",
+      "bonus_cap": "Bonuses top out at %s.",
+      "bonus_paid": "Paid from the society account to %s's bank.",
+      "fire": "Fire %s"
+    },
+    "employees": {
+      "subtitle_duty": "%s, %d on duty",
+      "search": "Search by name or citizen ID",
+      "search_aria": "Search employees",
+      "no_match": "No one matches that search."
+    },
+    "fire": {
+      "title": "Fire %s?",
+      "body": "%s leaves %s now and loses access to its vehicles and this menu.",
+      "body_duty": "%s leaves %s now and loses access to its vehicles and this menu. %s's hours stay in the duty log.",
+      "placeholder": "What happened",
+      "hint": "Saved with the firing in the staff log."
+    },
+    "hire": {
+      "hire": "Hire",
+      "hire_name": "Hire %s",
+      "applied": "Applied %s",
+      "title": "Hire someone",
+      "description": "Pick a person standing near you, or enter their citizen ID.",
+      "nearby": "Nearby",
+      "nobody": "Nobody within %d m. Ask them to come closer, or use their citizen ID.",
+      "nearby_players": "Nearby players",
+      "citizen_id": "Or citizen ID",
+      "citizen_placeholder": "e.g. HKW49120",
+      "starting_rank": "Starting rank",
+      "second_job": "Hire as a second job",
+      "second_job_hint": "They keep their main job and add this one.",
+      "sent_title": "Job offer sent",
+      "sent": "%s has a minute to answer. You get a notification with their answer."
+    },
+    "jobs": {
+      "main": "Main job",
+      "second": "Second job",
+      "since": "Since %s",
+      "second_since": "Second job since %s",
+      "job": "Job",
+      "make_main": "Make main job",
+      "leave": "Leave",
+      "note": "Second jobs only show for jobs that turn them on in Settings. A boss adds you to theirs when they hire you.",
+      "leave_title": "Leave %s?",
+      "leave_body": "You stop working there now and lose your %s rank. A boss has to hire you again to come back.",
+      "leave_job": "Leave %s"
+    },
+    "rank": {
+      "subtitle": "Grade %d, %s",
+      "pay_hint": "Paid from the society account to each %s on duty.",
+      "can_do": "What this rank can do",
+      "boss_all": "Boss ranks can do everything.",
+      "discard": "Discard",
+      "save": "Save rank"
+    },
+    "ranks": {
+      "everything": "Everything",
+      "nothing": "Nothing in this menu",
+      "subtitle": "%s, %s",
+      "grade": "Grade",
+      "can": "Can",
+      "people": "People",
+      "note": "The ranks themselves come from the job's setup. Pay and permissions are yours to change here."
+    },
+    "withdraw": {
+      "title": "Withdraw %s?",
+      "body": "The money moves from the society account to your bank. Everyone with access to funds at %s sees it in the history under your name.",
+      "after": "Society account after",
+      "paydays": "Paydays covered after",
+      "down_from": "%d, down from %d",
+      "confirm": "Withdraw %s"
+    },
+    "overview": {
+      "on_duty_count": "%d of %d on duty",
+      "payroll": "Payroll is %s per payday.",
+      "payroll_left": "Payroll is %s per payday, enough for %d more.",
+      "subtitle": "%s, %s",
+      "society_account": "Society account",
+      "on_duty_now": "On duty now",
+      "of_total": "of %d",
+      "bonuses_week": "Bonuses this week",
+      "fleet": "Fleet",
+      "all_employees": "All employees",
+      "on_shift_for": "On shift for",
+      "nobody_on_duty": "Nobody is on duty right now.",
+      "waiting": "Waiting on you",
+      "nothing_waiting": "Nothing waiting on you.",
+      "latest": "Latest announcement"
+    },
+    "my_job": {
+      "answered_by": "Answered by %s",
+      "sent": "Sent %s",
+      "jobs_subtitle": "Your main job and any second jobs",
+      "subtitle": "%s at %s",
+      "subtitle_since": "%s at %s since %s",
+      "requests": "My requests",
+      "nothing_sent": "Nothing sent yet.",
+      "locked": "Staff, funds and pay are locked",
+      "locked_body": "Your rank can't open them.",
+      "locked_boss": "%s can give it access under Ranks and pay."
+    },
+    "requests": {
+      "open": "Open",
+      "kind": {
+        "application": "Applications",
+        "leave": "Leave",
+        "report": "Reports"
+      },
+      "none": {
+        "application": "No applications yet",
+        "leave": "No leave requests yet",
+        "report": "No reports yet"
+      },
+      "subtitle": "Applications, leave and reports from your staff",
+      "empty_body": "New applications, leave requests and staff reports land here.",
+      "empty_apply": "Anyone who isn't on staff can apply from this menu.",
+      "see_answered": "See answered requests",
+      "hire_nearby": "Hire someone nearby",
+      "answered_note": "Answered requests move to their tab."
+    },
+    "forms": {
+      "request_leave": "Request leave",
+      "report_problem": "Report a problem",
+      "goes_to": "Goes to %s.",
+      "goes_to_managers": "Goes to the managers.",
+      "leave_sent": "Leave request sent.",
+      "report_sent": "Report sent.",
+      "reason_placeholder": "A line for your manager",
+      "send_leave": "Send leave request",
+      "whats_wrong": "What's wrong",
+      "title_placeholder": "One line about the problem",
+      "details": "Details",
+      "details_placeholder": "What happened and when",
+      "send_report": "Send report"
+    },
+    "society": {
+      "money_in": "Money in",
+      "money_out": "Money out",
+      "withdraw_amount": "Withdraw %s",
+      "deposit_amount": "Deposit %s",
+      "subtitle": "Maze Bank society account, %s",
+      "balance": "Balance",
+      "next_payday": "Next payday in %s takes %s.",
+      "note": "Note",
+      "note_placeholder": "What it's for",
+      "holds": "The account holds %s.",
+      "withdraw_hint": "Goes to your personal bank account and shows in the history under your name.",
+      "deposit_hint": "Comes from your bank account and shows in the history under your name.",
+      "transactions": "Transactions",
+      "date": "Date",
+      "description": "Description",
+      "by": "By",
+      "empty": "No transactions to show.",
+      "latest": "Showing the latest %s."
+    },
+    "vehicles": {
+      "everyone": "Everyone",
+      "and_up": "%s and up",
+      "subtitle": "Buy work vehicles with society funds",
+      "available": "Available to buy",
+      "balance": "Balance %s",
+      "vehicle": "Vehicle",
+      "use": "Use",
+      "drivers": "Drivers",
+      "price": "Price",
+      "needs": "Needs %s more in the account",
+      "free": "Free",
+      "buying": "Buying",
+      "buy": "Buy",
+      "add": "Add to fleet",
+      "none": "This job has no vehicles to buy.",
+      "garage_note": "Bought vehicles go to the job garage. Employees take them out from there.",
+      "fleet": "Your fleet",
+      "no_fleet": "No vehicles yet."
+    },
+    "announcements": {
+      "subtitle": "Everyone at %s sees these when they open their menu",
+      "new": "New announcement",
+      "title_placeholder": "What it's about",
+      "message_placeholder": "What everyone needs to know",
+      "hint": "Staff in the city get a notification.",
+      "post": "Post announcement"
+    },
+    "settings": {
+      "subtitle": "Logo and the parts of this menu %s uses",
+      "logo": "Logo",
+      "logo_body": "Shown at the top of this menu for everyone at %s.",
+      "no_logo": "No logo yet, so the menu shows the job's icon.",
+      "broken": "That link doesn't load an image, so the menu shows the job's icon.",
+      "preview": "This is what everyone sees in the menu.",
+      "image_link": "Image link",
+      "logos_off": "Job logos are turned off on this server.",
+      "logo_hint": "Use a link from %s. A square PNG at 256 px looks best.",
+      "logo_host": "Use an image link from %s.",
+      "remove": "Remove logo",
+      "save": "Save logo",
+      "sections": "Menu sections",
+      "sections_body": "Turning one off hides it for everyone. Nothing is deleted."
+    },
+    "apply": {
+      "aria": "Apply to %s",
+      "pending_title": "Your application is in",
+      "pending_body": "You sent it on %s. %s will answer, and it shows here the next time you open this menu.",
+      "what_you_wrote": "What you wrote",
+      "title": "Apply to work here",
+      "intro": "%s review applications. Their answer shows here the next time you open this menu.",
+      "starting_rank": "Starting rank",
+      "starting_pay": "Starting pay",
+      "staff": "Staff",
+      "why": "Why you want the job",
+      "why_placeholder": "A few lines about you and when you can work",
+      "name_note": "Your name goes with it.",
+      "where": "Staff see it under Requests.",
+      "send": "Send application"
+    },
+    "charter": {
+      "full": "Every gang slot in the city is taken.",
+      "short": "You need %s more in marked bills.",
+      "title": "Charter a gang",
+      "intro": "You start as %s of a new street gang. The charterer only takes marked bills.",
+      "name": "Gang name",
+      "name_hint": "%d to %d letters. Other gangs see this name.",
+      "price": "Price",
+      "bills": "%s marked bills",
+      "carry": "You carry",
+      "slots": "Gang slots in the city",
+      "slots_taken": "%d of %d taken",
+      "not_now": "Not now",
+      "pay": "Pay %s and charter"
+    },
+    "gang": {
+      "nav": {
+        "roster": "Roster",
+        "permissions": "Rank permissions",
+        "vault": "Vault and turf",
+        "archetype": "Archetype"
+      },
+      "rank_founder": "%s, founder"
+    },
+    "roster": {
+      "kick_title": "Kick %s?",
+      "kick_body": "%s leaves %s now and loses their rank. They can only come back through an invite.",
+      "kick": "Kick",
+      "pass_title": "Pass leadership to %s?",
+      "pass_body": "%s becomes %s. Only they can hand it back.",
+      "pass_body_drop": "%s becomes %s and you drop to %s. Only they can hand it back.",
+      "pass": "Pass leadership",
+      "disband_title": "Disband %s?",
+      "disband_body": "Every member is removed and the gang slot frees up. The vault is not refunded. This cannot be undone.",
+      "disband": "Disband the gang",
+      "leave_title": "Leave %s?",
+      "leave_body": "You leave %s now and lose your rank as %s. You can only come back through an invite.",
+      "leave": "Leave the gang",
+      "subtitle": "%s, founded %s",
+      "crime_xp": "Ranks go up with crime XP from street work.",
+      "invite": "Invite",
+      "invite_range": "Within %d m, on foot",
+      "nobody": "Nobody close enough. Ask them to walk over.",
+      "nearby_in_gang": "%d m away, in %s",
+      "nearby_no_gang": "%d m away, no gang",
+      "other_gang": "Players in another gang have to leave it first.",
+      "pass_hint": "They become %s.",
+      "pass_hint_drop": "They become %s. You drop to %s.",
+      "new_leader": "New leader"
+    },
+    "permissions": {
+      "subtitle": "What each rank can do in the street economy",
+      "permission": "Permission",
+      "checkbox": "%s, %s",
+      "boss_note": "%s always has every permission. Defaults come from the %s archetype.",
+      "boss_rank": "The boss rank",
+      "reset": "Reset to defaults",
+      "save": "Save permissions"
+    },
+    "vault": {
+      "subtitle": "Dirty money, home turf and HQ",
+      "balance": "Vault, in marked bills",
+      "deposits": "Deposits go through the charterer. Clean money can't go in.",
+      "withdraw_amount": "Withdraw amount",
+      "withdraw": "Withdraw to inventory",
+      "holds": "The vault holds %s.",
+      "hidden": "Your rank can't see the vault. The boss can change that under Rank permissions.",
+      "history": "Vault history",
+      "when": "When",
+      "what": "What",
+      "who": "Who",
+      "empty": "Nothing has moved through the vault yet.",
+      "turf_hint": "Members earn the home turf bonus here.",
+      "turf_cost": "Moving costs %s from the vault.",
+      "turf_wait": "You can move it again in %s.",
+      "move_turf": "Move turf",
+      "hq": "HQ",
+      "no_hq": "No HQ yet",
+      "hq_moved": "Moved %s.",
+      "hq_wait": "You can move it again in %s for %s.",
+      "hq_cost": "A new spot costs %s from the vault.",
+      "pick_spot": "Pick a new spot"
+    },
+    "archetype": {
+      "check_age": "Founded %d days ago or more",
+      "check_members": "At least %d members",
+      "check_vault": "%s in the vault",
+      "check_cooldown": "No change in the last %d days",
+      "time_left": "%s left",
+      "changed_on": "Changed %s",
+      "never_changed": "Never changed",
+      "check_price": "Vault covers the price",
+      "short": "%s short",
+      "covered": "Covered",
+      "hint_short": "The %s comes out of the vault, so it needs %s more first.",
+      "hint_checks": "Every line above needs a green check first.",
+      "hint_ready": "The %s comes out of the vault.",
+      "subtitle": "%s since %s",
+      "pick": "Pick what the gang becomes",
+      "current": "Current",
+      "no_way_back": "Ranks and permissions switch to the new archetype. Members keep their place on the ladder. There is no way back to %s yet.",
+      "old_archetype": "the old archetype",
+      "before": "Before you can upgrade",
+      "every_line": "Every line needs a green check.",
+      "become": "Become a %s",
+      "become_title": "Become a %s?",
+      "become_body": "%s leaves the vault now. Ranks and permissions switch to the %s ladder and members keep their place."
+    },
+    "admin": {
+      "title": "Gangs",
+      "subtitle": "Admin tool",
+      "new_gang": "New gang",
+      "slots_used": "%d of %d gang slots used",
+      "founded_by": "Founded by %s on %s",
+      "founded": "Founded on %s",
+      "slots_full": "Every gang slot is taken",
+      "new_hint": "Set it up, then add members",
+      "details": "Details",
+      "display_name": "Display name",
+      "name_placeholder": "Gang name",
+      "archetype": "Archetype",
+      "archetype_hint": "Skips the vault cost and the upgrade checks.",
+      "no_turf": "No home turf",
+      "save_details": "Save details",
+      "create_gang": "Create gang",
+      "delete_gang": "Delete gang",
+      "delete_hint": "Removes every member and frees the slot. The vault is not refunded.",
+      "members": "Members",
+      "online_player": "Online player",
+      "pick_online": "Pick an online player",
+      "add": "Add",
+      "create_first": "Create the gang first, then add members here.",
+      "loading_members": "Loading members",
+      "rank_for": "Rank for %s",
+      "remove": "Remove",
+      "no_members": "No members yet.",
+      "delete_title": "Delete %s?",
+      "delete_body": "Every member is removed and the slot frees up. The vault is not refunded. This cannot be undone.",
+      "candidate_in_gang": "%s, in %s",
+      "rank_option": "%d, %s"
+    }
+  }
+}

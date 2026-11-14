@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+.vite/
+.cache/
+.parcel-cache/
+
+# Build caches
+.turbo/
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
