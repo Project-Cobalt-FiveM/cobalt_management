@@ -68,6 +68,10 @@ function CobaltManagementExports:GetJob() end
 ---@return ManagementGang?
 function CobaltManagementExports:GetGang(source) end
 
+---**Client.** The local player's gang, or nil outside a gang.
+---@return ManagementGang?
+function CobaltManagementExports:GetGang() end
+
 ---**Server.** Puts an online player in a job at a grade; false when the job or grade doesn't exist.
 ---@param source integer
 ---@param name string

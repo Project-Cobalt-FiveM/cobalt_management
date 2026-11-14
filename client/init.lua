@@ -76,6 +76,7 @@ RegisterNetEvent('cobalt_management:jobOffer', function(jobName, jobLabel, rank,
 end)
 
 exports('GetJob', Membership.job)
+exports('GetGang', Membership.gang)
 exports('GetDuty', Membership.onDuty)
 
 exports('OpenMenu', function(mode, data)
